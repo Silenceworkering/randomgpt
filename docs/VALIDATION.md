@@ -5,8 +5,8 @@
 
 | Проверка | Результат |
 |---|---|
-| pytest на настоящей PostgreSQL | 49 passed (бесплатный webhook-режим) |
-| pytest на SQLite in-memory | 45 passed, 4 skipped (проверки, требующие PostgreSQL) |
+| pytest на настоящей PostgreSQL | 50 passed (бесплатный webhook-режим) |
+| pytest на SQLite in-memory | 46 passed, 4 skipped (проверки, требующие PostgreSQL) |
 | Ruff check и format --check | Пройдены |
 | compileall | Пройден |
 | pip check | No broken requirements found |
@@ -82,3 +82,5 @@ Free Web Service. Добавлены HTTPS webhook с секретным заг�
 Проверка YAML подтвердила plan: free и отсутствие databases/worker. Полный авторизованный Blueprint API
 и живой Neon/Render ещё не проверены: аккаунты и реальные секреты не подключены. Платные ресурсы не создавались.
 GitHub Actions для сводок выключен до установки NOTIFICATIONS_ENABLED=true и нужных secrets.
+
+Дополнительно проверено, что истёкший callback после холодного старта не мешает открыть меню.

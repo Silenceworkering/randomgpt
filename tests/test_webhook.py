@@ -180,3 +180,29 @@ async def test_parallel_webhook_ingestion_keeps_single_homework(database):
     await asyncio.gather(receive(910), receive(911))
     async with database() as session:
         assert await session.scalar(select(func.count()).select_from(Homework)) == 1
+
+
+async def test_expired_callback_after_free_cold_start_still_opens_menu(database):
+    from aiogram.exceptions import TelegramBadRequest
+    from aiogram.methods import AnswerCallbackQuery
+    from aiogram.types import Chat, Message, User
+    from types import SimpleNamespace
+    from dedlainych.telegram.handlers import UI
+    from dedlainych.db.repositories import preferences
+
+    async with database() as session:
+        await preferences(session, 101, registered=True)
+        await session.commit()
+    callback = SimpleNamespace(
+        from_user=User(id=101, is_bot=False, first_name="Student"),
+        data="home",
+        message=Message(message_id=1, date=utcnow(), chat=Chat(id=101, type="private")),
+        answer=AsyncMock(
+            side_effect=TelegramBadRequest(
+                method=AnswerCallbackQuery(callback_query_id="expired"), message="query is too old"
+            )
+        ),
+    )
+    with patch("dedlainych.telegram.handlers.edit", new=AsyncMock()) as edit:
+        await UI(database, Settings(_env_file=None, run_mode="webhook")).callback(callback)
+        assert "ДЕДЛАЙНЫЧ" in edit.call_args.args[1]

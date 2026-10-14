@@ -115,7 +115,12 @@ class UI:
         self.rate[uid] = now
         if len(self.rate) > 10000:
             self.rate = {k: v for k, v in self.rate.items() if now - v < 60}
-        await cb.answer()
+        try:
+            await cb.answer()
+        except TelegramBadRequest:
+            # After a Render cold start Telegram may expire the callback toast.
+            # The authenticated action and editing its message are still valid.
+            pass
         try:
             async with self.sessions() as session:
                 prefs = await session.get(UserSettings, uid)
