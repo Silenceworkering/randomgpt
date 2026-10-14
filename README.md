@@ -1,3 +1,9 @@
+# HUMAN.EXE — браузерная игра 18+
+
+Новый самостоятельный проект находится в [`human-exe/`](human-exe/README.md). Инструкция запуска, тестов и бесплатного Render Static Site — в его README. Blueprint игры: [`render.human-exe.yaml`](render.human-exe.yaml).
+
+---
+
 # VOLTRIX ⚡
 
 Бесплатная первая версия сервиса подбора комплектующих и сборки ПК на русском языке. Один процесс FastAPI обслуживает адаптивный сайт, API и Telegram-бота на aiogram 3 через webhook. Платных AI API, баз данных и внешних шрифтов нет.
