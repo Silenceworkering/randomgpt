@@ -1,0 +1,542 @@
+{
+  "metadata": {
+    "price_kind": "estimate",
+    "price_notice": "Расчётные примерные цены, не актуальные предложения магазинов. Наличие и цены проверяйте у продавца. Можно указать свои цены.",
+    "spec_notice": "Справочные характеристики. Перед покупкой проверьте точную ревизию, CPU Support List/BIOS, QVL памяти, комплект креплений кулера и разъёмы питания на сайте производителя. Баллы, тепловой запас и потребление — оценки VOLTRIX, не результаты бенчмарков.",
+    "manufacturer_links": {
+      "AMD": "https://www.amd.com/",
+      "Intel": "https://www.intel.com/",
+      "MSI": "https://www.msi.com/",
+      "ASUS": "https://www.asus.com/",
+      "Kingston": "https://www.kingston.com/",
+      "Sapphire": "https://www.sapphiretech.com/",
+      "DeepCool": "https://www.deepcool.com/",
+      "Western Digital": "https://www.westerndigital.com/",
+      "Cooler Master": "https://www.coolermaster.com/",
+      "NVIDIA": "https://www.nvidia.com/"
+    }
+  },
+  "items": [
+    {
+      "id": "r5600",
+      "category": "cpu",
+      "name": "AMD Ryzen 5 5600",
+      "brand": "AMD",
+      "estimate_rub": 10500,
+      "specs": {
+        "socket": "AM4",
+        "memory_types": ["DDR4"],
+        "cores": 6,
+        "threads": 12,
+        "power_w": 88,
+        "igpu": false,
+        "score": 65
+      }
+    },
+    {
+      "id": "r5600g",
+      "category": "cpu",
+      "name": "AMD Ryzen 5 5600G",
+      "brand": "AMD",
+      "estimate_rub": 12000,
+      "specs": {
+        "socket": "AM4",
+        "memory_types": ["DDR4"],
+        "cores": 6,
+        "threads": 12,
+        "power_w": 88,
+        "igpu": true,
+        "score": 57,
+        "igpu_score": 12
+      }
+    },
+    {
+      "id": "r7600",
+      "category": "cpu",
+      "name": "AMD Ryzen 5 7600",
+      "brand": "AMD",
+      "estimate_rub": 18500,
+      "specs": {
+        "socket": "AM5",
+        "memory_types": ["DDR5"],
+        "cores": 6,
+        "threads": 12,
+        "power_w": 88,
+        "igpu": true,
+        "score": 86,
+        "igpu_score": 5
+      }
+    },
+    {
+      "id": "r7700",
+      "category": "cpu",
+      "name": "AMD Ryzen 7 7700",
+      "brand": "AMD",
+      "estimate_rub": 27000,
+      "specs": {
+        "socket": "AM5",
+        "memory_types": ["DDR5"],
+        "cores": 8,
+        "threads": 16,
+        "power_w": 88,
+        "igpu": true,
+        "score": 108,
+        "igpu_score": 5
+      }
+    },
+    {
+      "id": "i12100",
+      "category": "cpu",
+      "name": "Intel Core i3-12100",
+      "brand": "Intel",
+      "estimate_rub": 11000,
+      "specs": {
+        "socket": "LGA1700",
+        "memory_types": ["DDR4", "DDR5"],
+        "cores": 4,
+        "threads": 8,
+        "power_w": 89,
+        "igpu": true,
+        "score": 48,
+        "igpu_score": 7
+      }
+    },
+    {
+      "id": "i12400f",
+      "category": "cpu",
+      "name": "Intel Core i5-12400F",
+      "brand": "Intel",
+      "estimate_rub": 11000,
+      "specs": {
+        "socket": "LGA1700",
+        "memory_types": ["DDR4", "DDR5"],
+        "cores": 6,
+        "threads": 12,
+        "power_w": 117,
+        "igpu": false,
+        "score": 65
+      }
+    },
+    {
+      "id": "i13400f",
+      "category": "cpu",
+      "name": "Intel Core i5-13400F",
+      "brand": "Intel",
+      "estimate_rub": 18500,
+      "specs": {
+        "socket": "LGA1700",
+        "memory_types": ["DDR4", "DDR5"],
+        "cores": 10,
+        "threads": 16,
+        "power_w": 148,
+        "igpu": false,
+        "score": 88
+      }
+    },
+    {
+      "id": "b550",
+      "category": "motherboard",
+      "name": "MSI B550M PRO-VDH WIFI",
+      "brand": "MSI",
+      "estimate_rub": 10500,
+      "specs": {
+        "socket": "AM4",
+        "memory_type": "DDR4",
+        "form_factor": "mATX",
+        "ram_slots": 4,
+        "max_ram_gb": 128,
+        "m2_nvme": true,
+        "supported_cpus": ["r5600", "r5600g"],
+        "bios_note": "Для Ryzen 5000 проверьте версию BIOS в CPU Support List MSI."
+      }
+    },
+    {
+      "id": "b650",
+      "category": "motherboard",
+      "name": "MSI PRO B650M-A WIFI",
+      "brand": "MSI",
+      "estimate_rub": 16500,
+      "specs": {
+        "socket": "AM5",
+        "memory_type": "DDR5",
+        "form_factor": "mATX",
+        "ram_slots": 4,
+        "max_ram_gb": 128,
+        "m2_nvme": true,
+        "supported_cpus": ["r7600", "r7700"]
+      }
+    },
+    {
+      "id": "h610",
+      "category": "motherboard",
+      "name": "ASUS PRIME H610M-K D4",
+      "brand": "ASUS",
+      "estimate_rub": 7000,
+      "specs": {
+        "socket": "LGA1700",
+        "memory_type": "DDR4",
+        "form_factor": "mATX",
+        "ram_slots": 2,
+        "max_ram_gb": 64,
+        "m2_nvme": true,
+        "supported_cpus": ["i12100", "i12400f", "i13400f"],
+        "bios_note": "Для Core 13-го поколения может потребоваться обновление BIOS."
+      }
+    },
+    {
+      "id": "b760d4",
+      "category": "motherboard",
+      "name": "MSI PRO B760M-A WIFI DDR4",
+      "brand": "MSI",
+      "estimate_rub": 14000,
+      "specs": {
+        "socket": "LGA1700",
+        "memory_type": "DDR4",
+        "form_factor": "mATX",
+        "ram_slots": 4,
+        "max_ram_gb": 128,
+        "m2_nvme": true,
+        "supported_cpus": ["i12100", "i12400f", "i13400f"]
+      }
+    },
+    {
+      "id": "b760d5",
+      "category": "motherboard",
+      "name": "MSI PRO B760M-A WIFI",
+      "brand": "MSI",
+      "estimate_rub": 16000,
+      "specs": {
+        "socket": "LGA1700",
+        "memory_type": "DDR5",
+        "form_factor": "mATX",
+        "ram_slots": 4,
+        "max_ram_gb": 192,
+        "m2_nvme": true,
+        "supported_cpus": ["i12100", "i12400f", "i13400f"]
+      }
+    },
+    {
+      "id": "ddr4-16",
+      "category": "ram",
+      "name": "Kingston FURY Beast 16 ГБ (2×8) DDR4-3200",
+      "brand": "Kingston",
+      "estimate_rub": 4000,
+      "specs": {
+        "memory_type": "DDR4",
+        "capacity_gb": 16,
+        "modules": 2,
+        "speed_mt": 3200,
+        "part_number": "KF432C16BBK2/16"
+      }
+    },
+    {
+      "id": "ddr4-32",
+      "category": "ram",
+      "name": "Kingston FURY Beast 32 ГБ (2×16) DDR4-3200",
+      "brand": "Kingston",
+      "estimate_rub": 7000,
+      "specs": {
+        "memory_type": "DDR4",
+        "capacity_gb": 32,
+        "modules": 2,
+        "speed_mt": 3200,
+        "part_number": "KF432C16BBK2/32"
+      }
+    },
+    {
+      "id": "ddr5-16",
+      "category": "ram",
+      "name": "Kingston FURY Beast 16 ГБ (2×8) DDR5-5200",
+      "brand": "Kingston",
+      "estimate_rub": 6500,
+      "specs": {
+        "memory_type": "DDR5",
+        "capacity_gb": 16,
+        "modules": 2,
+        "speed_mt": 5200,
+        "part_number": "KF552C40BBK2-16"
+      }
+    },
+    {
+      "id": "ddr5-32",
+      "category": "ram",
+      "name": "Kingston FURY Beast 32 ГБ (2×16) DDR5-6000",
+      "brand": "Kingston",
+      "estimate_rub": 10500,
+      "specs": {
+        "memory_type": "DDR5",
+        "capacity_gb": 32,
+        "modules": 2,
+        "speed_mt": 6000,
+        "part_number": "KF560C36BBEK2-32"
+      }
+    },
+    {
+      "id": "rtx4060",
+      "category": "gpu",
+      "name": "MSI GeForce RTX 4060 VENTUS 2X BLACK 8G OC",
+      "brand": "NVIDIA",
+      "estimate_rub": 33000,
+      "specs": {
+        "vram_gb": 8,
+        "power_w": 115,
+        "length_mm": 199,
+        "width_slots": 2,
+        "pcie_8pin": 1,
+        "score": 70
+      }
+    },
+    {
+      "id": "rtx4060ti",
+      "category": "gpu",
+      "name": "MSI GeForce RTX 4060 Ti VENTUS 2X BLACK 8G OC",
+      "brand": "NVIDIA",
+      "estimate_rub": 45000,
+      "specs": {
+        "vram_gb": 8,
+        "power_w": 160,
+        "length_mm": 199,
+        "width_slots": 2,
+        "pcie_8pin": 1,
+        "score": 90
+      }
+    },
+    {
+      "id": "rtx4070",
+      "category": "gpu",
+      "name": "MSI GeForce RTX 4070 VENTUS 2X E 12G OC",
+      "brand": "NVIDIA",
+      "estimate_rub": 65000,
+      "specs": {
+        "vram_gb": 12,
+        "power_w": 200,
+        "length_mm": 242,
+        "width_slots": 2,
+        "pcie_8pin": 1,
+        "score": 125
+      }
+    },
+    {
+      "id": "rx6600",
+      "category": "gpu",
+      "name": "Sapphire PULSE Radeon RX 6600 8 ГБ",
+      "brand": "AMD",
+      "estimate_rub": 23000,
+      "specs": {
+        "vram_gb": 8,
+        "power_w": 132,
+        "length_mm": 193,
+        "width_slots": 2,
+        "pcie_8pin": 1,
+        "score": 52
+      }
+    },
+    {
+      "id": "rx7600",
+      "category": "gpu",
+      "name": "Sapphire PULSE Radeon RX 7600 8 ГБ",
+      "brand": "AMD",
+      "estimate_rub": 29000,
+      "specs": {
+        "vram_gb": 8,
+        "power_w": 165,
+        "length_mm": 240,
+        "width_slots": 2,
+        "pcie_8pin": 1,
+        "score": 65
+      }
+    },
+    {
+      "id": "rx7700xt",
+      "category": "gpu",
+      "name": "Sapphire PULSE Radeon RX 7700 XT 12 ГБ",
+      "brand": "AMD",
+      "estimate_rub": 46000,
+      "specs": {
+        "vram_gb": 12,
+        "power_w": 230,
+        "length_mm": 280,
+        "width_slots": 3,
+        "pcie_8pin": 2,
+        "score": 110
+      }
+    },
+    {
+      "id": "rx7800xt",
+      "category": "gpu",
+      "name": "Sapphire PULSE Radeon RX 7800 XT 16 ГБ",
+      "brand": "AMD",
+      "estimate_rub": 55000,
+      "specs": {
+        "vram_gb": 16,
+        "power_w": 263,
+        "length_mm": 280,
+        "width_slots": 3,
+        "pcie_8pin": 2,
+        "score": 130
+      }
+    },
+    {
+      "id": "nv2-500",
+      "category": "ssd",
+      "name": "Kingston NV2 500 ГБ",
+      "brand": "Kingston",
+      "estimate_rub": 3500,
+      "specs": {
+        "capacity_gb": 500,
+        "interface": "M.2 NVMe",
+        "form_factor": "2280",
+        "part_number": "SNV2S/500G"
+      }
+    },
+    {
+      "id": "sn580-1",
+      "category": "ssd",
+      "name": "WD Blue SN580 1 ТБ",
+      "brand": "Western Digital",
+      "estimate_rub": 6500,
+      "specs": {
+        "capacity_gb": 1000,
+        "interface": "M.2 NVMe",
+        "form_factor": "2280",
+        "part_number": "WDS100T3B0E"
+      }
+    },
+    {
+      "id": "sn770-2",
+      "category": "ssd",
+      "name": "WD Black SN770 2 ТБ",
+      "brand": "Western Digital",
+      "estimate_rub": 12000,
+      "specs": {
+        "capacity_gb": 2000,
+        "interface": "M.2 NVMe",
+        "form_factor": "2280",
+        "part_number": "WDS200T3X0E"
+      }
+    },
+    {
+      "id": "pk550",
+      "category": "psu",
+      "name": "DeepCool PK550D",
+      "brand": "DeepCool",
+      "estimate_rub": 4500,
+      "specs": {
+        "wattage": 550,
+        "pcie_8pin": 2,
+        "form_factor": "ATX",
+        "length_mm": 140,
+        "efficiency": "80 PLUS Bronze"
+      }
+    },
+    {
+      "id": "pk650",
+      "category": "psu",
+      "name": "DeepCool PK650D",
+      "brand": "DeepCool",
+      "estimate_rub": 5500,
+      "specs": {
+        "wattage": 650,
+        "pcie_8pin": 2,
+        "form_factor": "ATX",
+        "length_mm": 140,
+        "efficiency": "80 PLUS Bronze"
+      }
+    },
+    {
+      "id": "pm750",
+      "category": "psu",
+      "name": "DeepCool PM750D",
+      "brand": "DeepCool",
+      "estimate_rub": 8500,
+      "specs": {
+        "wattage": 750,
+        "pcie_8pin": 4,
+        "form_factor": "ATX",
+        "length_mm": 140,
+        "efficiency": "80 PLUS Gold"
+      }
+    },
+    {
+      "id": "matrexx40",
+      "category": "case",
+      "name": "DeepCool MATREXX 40",
+      "brand": "DeepCool",
+      "estimate_rub": 4500,
+      "specs": {
+        "board_forms": ["mATX", "ITX"],
+        "max_gpu_mm": 320,
+        "max_gpu_slots": 4,
+        "max_cooler_mm": 165,
+        "psu_form": "ATX",
+        "max_psu_mm": 160
+      }
+    },
+    {
+      "id": "cc560",
+      "category": "case",
+      "name": "DeepCool CC560",
+      "brand": "DeepCool",
+      "estimate_rub": 5500,
+      "specs": {
+        "board_forms": ["ATX", "mATX", "ITX"],
+        "max_gpu_mm": 370,
+        "max_gpu_slots": 7,
+        "max_cooler_mm": 163,
+        "psu_form": "ATX",
+        "max_psu_mm": 170
+      }
+    },
+    {
+      "id": "q300l",
+      "category": "case",
+      "name": "Cooler Master MasterBox Q300L",
+      "brand": "Cooler Master",
+      "estimate_rub": 6500,
+      "specs": {
+        "board_forms": ["mATX", "ITX"],
+        "max_gpu_mm": 360,
+        "max_gpu_slots": 4,
+        "max_cooler_mm": 159,
+        "psu_form": "ATX",
+        "max_psu_mm": 160
+      }
+    },
+    {
+      "id": "ag200",
+      "category": "cooler",
+      "name": "DeepCool AG200",
+      "brand": "DeepCool",
+      "estimate_rub": 1500,
+      "specs": {
+        "sockets": ["AM4", "AM5", "LGA1700"],
+        "height_mm": 133,
+        "thermal_budget_w": 100
+      }
+    },
+    {
+      "id": "ag400",
+      "category": "cooler",
+      "name": "DeepCool AG400",
+      "brand": "DeepCool",
+      "estimate_rub": 2500,
+      "specs": {
+        "sockets": ["AM4", "AM5", "LGA1700"],
+        "height_mm": 150,
+        "thermal_budget_w": 180
+      }
+    },
+    {
+      "id": "ak620",
+      "category": "cooler",
+      "name": "DeepCool AK620",
+      "brand": "DeepCool",
+      "estimate_rub": 6000,
+      "specs": {
+        "sockets": ["AM4", "AM5", "LGA1700"],
+        "height_mm": 160,
+        "thermal_budget_w": 220
+      }
+    }
+  ]
+}
