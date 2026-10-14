@@ -97,9 +97,12 @@ def build_app(config, sessions, bot, dispatcher, *, manage_lifecycle=True) -> we
 
     async def cleanup(app):
         # Leave the webhook configured so Telegram can wake the sleeping Render service.
-        for task in list(workers):
+        pending = set()
+        if workers:
+            _, pending = await asyncio.wait(list(workers), timeout=20)
+        for task in pending:
             task.cancel()
-        await asyncio.gather(*workers, return_exceptions=True)
+        await asyncio.gather(*pending, return_exceptions=True)
 
     app.router.add_get("/health", health)
     app.router.add_post("/telegram/webhook", receive)
