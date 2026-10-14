@@ -5,8 +5,8 @@
 
 | Проверка | Результат |
 |---|---|
-| pytest на настоящей PostgreSQL | 50 passed (бесплатный webhook-режим) |
-| pytest на SQLite in-memory | 46 passed, 4 skipped (проверки, требующие PostgreSQL) |
+| pytest на настоящей PostgreSQL | 51 passed (бесплатный webhook-режим) |
+| pytest на SQLite in-memory | 47 passed, 4 skipped (проверки, требующие PostgreSQL) |
 | Ruff check и format --check | Пройдены |
 | compileall | Пройден |
 | pip check | No broken requirements found |
@@ -84,3 +84,5 @@ Free Web Service. Добавлены HTTPS webhook с секретным заг�
 GitHub Actions для сводок выключен до установки NOTIFICATIONS_ENABLED=true и нужных secrets.
 
 Дополнительно проверено, что истёкший callback после холодного старта не мешает открыть меню.
+
+Проверены сроки относительно даты исходного сообщения при отложенной обработке после сна.

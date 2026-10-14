@@ -317,7 +317,7 @@ class UI:
         text = (
             f"📚 <b>#{h.id} {escape(subject.name if subject else 'Уточнить предмет')}</b>\n{LINE}\n"
             f"{escape(h.description)}\n\n📅 {h.due or 'Срок не указан'}\n"
-            f"{'✅ Выполнено' if done else '❌ Не выполнено'}\n📥 Получено: {h.created_at:%d.%m.%Y}"
+            f"{'✅ Выполнено' if done else '❌ Не выполнено'}\n📥 Получено: {source.received_at:%d.%m.%Y}"
         )
         if source.link:
             text += f'\n🔗 <a href="{escape(source.link, quote=True)}">Источник</a>'
@@ -673,8 +673,9 @@ class UI:
                     message.message_id,
                     content,
                     files,
-                    datetime.now(ZoneInfo(self.config.tz)).date(),
+                    (message.edit_date or message.date).astimezone(ZoneInfo(self.config.tz)).date(),
                     link,
+                    received_at=message.date,
                 )
                 await session.commit()
             if any(h.status == "pending" for h in rows):

@@ -206,3 +206,25 @@ async def test_expired_callback_after_free_cold_start_still_opens_menu(database)
     with patch("dedlainych.telegram.handlers.edit", new=AsyncMock()) as edit:
         await UI(database, Settings(_env_file=None, run_mode="webhook")).callback(callback)
         assert "ДЕДЛАЙНЫЧ" in edit.call_args.args[1]
+
+
+async def test_queued_homework_uses_message_date_not_wakeup_date(database):
+    from aiogram.types import Chat, Message, User
+    from sqlalchemy import select
+    from dedlainych.db.models import Homework, Source
+    from dedlainych.telegram.handlers import UI
+
+    sent = datetime(2026, 10, 14, 14, tzinfo=timezone.utc)
+    message = Message(
+        message_id=950,
+        date=sent,
+        chat=Chat(id=-100123, type="supergroup"),
+        from_user=User(id=101, is_bot=False, first_name="Student"),
+        text="По матеше решить №10 завтра",
+    )
+    await UI(database, Settings(_env_file=None)).group_message(message)
+    async with database() as session:
+        task = await session.scalar(select(Homework))
+        source = await session.scalar(select(Source))
+        assert task.due.isoformat() == "2026-10-15"
+        assert source.received_at.replace(tzinfo=timezone.utc) == sent

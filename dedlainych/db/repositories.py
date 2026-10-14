@@ -103,6 +103,7 @@ async def ingest(
     attachments: list[dict],
     today: date,
     link: str | None = None,
+    received_at: datetime | None = None,
 ) -> list[Homework]:
     chat = await session.scalar(select(ConnectedChat).where(ConnectedChat.id == chat_id).with_for_update())
     if not chat:
@@ -128,6 +129,8 @@ async def ingest(
         return []  # ordinary conversations are never stored
     if source is None:
         source = Source(chat_id=chat_id, message_id=message_id, text=text, link=link)
+        if received_at is not None:
+            source.received_at = received_at
         session.add(source)
         await session.flush()
     elif source.text == text:
