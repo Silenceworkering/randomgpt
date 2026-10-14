@@ -161,3 +161,15 @@ class ProcessingLog(Base):
     provider: Mapped[str] = mapped_column(String(30))
     count: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class TelegramInbox(Base):
+    __tablename__ = "telegram_inbox"
+    __table_args__ = (Index("ix_inbox_ready", "status", "available_at"),)
+    update_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    payload: Mapped[dict] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

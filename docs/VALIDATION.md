@@ -5,8 +5,8 @@
 
 | Проверка | Результат |
 |---|---|
-| pytest на настоящей PostgreSQL | 40 passed (после добавления Render) |
-| pytest на SQLite in-memory | 38 passed, 2 skipped (PostgreSQL-блокировка и передача между worker) |
+| pytest на настоящей PostgreSQL | 49 passed (бесплатный webhook-режим) |
+| pytest на SQLite in-memory | 45 passed, 4 skipped (проверки, требующие PostgreSQL) |
 | Ruff check и format --check | Пройдены |
 | compileall | Пройден |
 | pip check | No broken requirements found |
@@ -70,3 +70,15 @@ postgresql:// URL, который выдаёт Render. Новые тесты п�
 пароля и передачу блокировки между старой и новой версией worker без одновременного лидерства.
 Полная авторизованная проверка Blueprint API и живой деплой Render не выполнялись: аккаунт и
 BOT_TOKEN не подключены, платные ресурсы не создавались.
+
+## Бесплатный Render Free + Neon Free
+
+Платный worker и платная Render PostgreSQL убраны из render.yaml. Новый Blueprint содержит только
+Free Web Service. Добавлены HTTPS webhook с секретным заголовком, постоянная очередь TelegramInbox,
+повторная обработка и удаление сырого JSON после успеха, разовая рассылка из GitHub Actions.
+Проверены 403 для неправильного секрета, 400 для неверного update, 503 при невозможности сохранить
+событие (для повторной доставки Telegram), повторы update_id, сохранность очереди при перезапуске,
+блокировка одной записи между процессами, идемпотентные кнопки выполнения и параллельный сбор заданий.
+Проверка YAML подтвердила plan: free и отсутствие databases/worker. Полный авторизованный Blueprint API
+и живой Neon/Render ещё не проверены: аккаунты и реальные секреты не подключены. Платные ресурсы не создавались.
+GitHub Actions для сводок выключен до установки NOTIFICATIONS_ENABLED=true и нужных secrets.

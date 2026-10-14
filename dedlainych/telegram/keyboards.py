@@ -28,7 +28,10 @@ def back(rows=None):
 def task_buttons(tasks, done):
     return back(
         [
-            [("✅" if h.id in done else "❌", f"toggle:{h.id}"), (f"📚 Задание #{h.id}", f"task:{h.id}")]
+            [
+                ("✅" if h.id in done else "❌", f"complete:{h.id}:{0 if h.id in done else 1}"),
+                (f"📚 Задание #{h.id}", f"task:{h.id}"),
+            ]
             for h in tasks
         ]
         + [[("📅 Другой день", "choose_day"), ("🔄 Обновить", "now")]]

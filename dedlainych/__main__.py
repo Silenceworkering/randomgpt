@@ -1,10 +1,9 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.types import ErrorEvent
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import select, text
 
@@ -12,7 +11,7 @@ from dedlainych.config import settings
 from dedlainych.db.models import Admin
 from dedlainych.db.session import make_database
 from dedlainych.services.notifications import Notifier, scheduler_lock
-from dedlainych.telegram.handlers import UI
+from dedlainych.telegram.dispatcher import build_dispatcher
 
 log = logging.getLogger(__name__)
 
@@ -25,25 +24,16 @@ async def main():
     config = settings()
     if not config.bot_token.get_secret_value():
         raise RuntimeError("Укажи BOT_TOKEN в окружении; токен не нужно добавлять в GitHub")
+    if config.run_mode == "webhook":
+        from dedlainych.webhook import serve
+
+        await serve(config)
+        return
     engine, sessions = make_database()
     lock = await scheduler_lock(engine, wait_seconds=config.instance_lock_wait_seconds)
     bot = Bot(config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     scheduler = AsyncIOScheduler(timezone="UTC")
-    dispatcher = Dispatcher()
-    dispatcher.include_router(UI(sessions, config).router)
-
-    @dispatcher.errors()
-    async def errors(event: ErrorEvent):
-        # Exception strings may include remote URLs or message data, so log only exception type.
-        log.error("Ошибка обработки Telegram: %s", type(event.exception).__name__)
-        if event.update.callback_query:
-            try:
-                await event.update.callback_query.answer(
-                    "💀 Не получилось. Попробуй снова чуть позже.", show_alert=True
-                )
-            except Exception:
-                pass
-        return True
+    dispatcher = build_dispatcher(sessions, config)
 
     async def watch_lock():
         if engine.dialect.name != "postgresql":

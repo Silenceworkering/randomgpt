@@ -83,6 +83,17 @@ async def toggle_completion(session: AsyncSession, user_id: int, homework_id: in
     return True
 
 
+async def set_completion(session: AsyncSession, user_id: int, homework_id: int, done: bool) -> None:
+    if not await accessible(session, user_id, homework_id):
+        raise PermissionError("Задание недоступно")
+    row = await session.get(Completion, (user_id, homework_id))
+    if done and row is None:
+        session.add(Completion(user_id=user_id, homework_id=homework_id))
+    elif not done and row is not None:
+        await session.delete(row)
+    await session.flush()
+
+
 async def ingest(
     session: AsyncSession,
     analyzer: Analyzer,
@@ -93,7 +104,7 @@ async def ingest(
     today: date,
     link: str | None = None,
 ) -> list[Homework]:
-    chat = await session.get(ConnectedChat, chat_id)
+    chat = await session.scalar(select(ConnectedChat).where(ConnectedChat.id == chat_id).with_for_update())
     if not chat:
         return []
     subjects = list(

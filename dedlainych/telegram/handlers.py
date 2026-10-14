@@ -33,6 +33,7 @@ from dedlainych.db.repositories import (
     preferences,
     register,
     toggle_completion,
+    set_completion,
     visible_homework,
 )
 from dedlainych.services.admin import is_admin
@@ -224,7 +225,12 @@ class UI:
                 f"⏰ {prefs.notify_time:%H:%M} · {escape(prefs.timezone)}\n"
                 f"🔔 {'Включены' if prefs.enabled else 'Выключены'}\n"
                 f"🚨 Выделение дедлайнов: {'да' if prefs.urgent_enabled else 'нет'}\n\n"
-                "Изменить время: <code>время 20:30</code>\n"
+                + (
+                    "🕒 Бесплатный режим: сводки проверяются раз в 30 минут, возможны задержки.\n"
+                    if self.config.run_mode == "webhook"
+                    else ""
+                )
+                + "Изменить время: <code>время 20:30</code>\n"
                 "Изменить пояс: <code>пояс Asia/Yakutsk</code>",
                 back(
                     [
@@ -240,6 +246,13 @@ class UI:
             key = "enabled" if data == "notify_toggle" else "urgent_enabled"
             await preferences(session, uid, **{key: not getattr(prefs, key)})
             await self.section(session, cb, uid, "settings", prefs)
+        elif data.startswith("complete:"):
+            _, raw_id, raw_state = data.split(":")
+            if raw_state not in {"0", "1"}:
+                raise ValueError("Неверный статус")
+            hid = int(raw_id)
+            await set_completion(session, uid, hid, raw_state == "1")
+            await self.task(session, cb, uid, hid)
         elif data.startswith("toggle:"):
             hid = int(data.split(":")[1])
             await toggle_completion(session, uid, hid)
@@ -308,7 +321,7 @@ class UI:
             limit_html(text),
             back(
                 [
-                    [(("↩️ Вернуть" if done else "✅ Выполнено"), f"toggle:{hid}")],
+                    [(("↩️ Вернуть" if done else "✅ Выполнено"), f"complete:{hid}:{0 if done else 1}")],
                     [("📎 Материалы", f"files:{hid}"), ("📂 Архив", "archive:0")],
                 ]
             ),

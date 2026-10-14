@@ -1,0 +1,36 @@
+name: Бесплатная отправка сводок
+on:
+  schedule:
+    - cron: '11,41 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: personal-notifications
+  cancel-in-progress: false
+jobs:
+  notify:
+    if: vars.NOTIFICATIONS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      ADMIN_IDS: ${{ secrets.ADMIN_IDS || '[]' }}
+      AI_PROVIDER: rules
+      RUN_MODE: webhook
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip, cache-dependency-path: requirements.lock}
+      - run: pip install -r requirements.lock
+      - name: Проверить подключение секретов без их вывода
+        run: |
+          python - <<'PY'
+          import os
+          missing = [key for key in ('BOT_TOKEN', 'DATABASE_URL') if not os.getenv(key)]
+          if missing:
+              raise SystemExit('Добавьте Actions secrets: ' + ', '.join(missing))
+          PY
+      - name: Обработать очередь и отправить положенные сводки
+        run: python -m dedlainych.notify_once

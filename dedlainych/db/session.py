@@ -1,3 +1,5 @@
+import ssl
+
 from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
@@ -14,5 +16,18 @@ def async_database_url(value: str) -> URL:
 
 def make_database(url: str | None = None):
     address = async_database_url(url or settings().database_url.get_secret_value())
-    engine = create_async_engine(address, pool_pre_ping=True)
+    connect_args = {}
+    if address.drivername == "postgresql+asyncpg":
+        query = dict(address.query)
+        sslmode = query.pop("sslmode", None)
+        # Neon libpq URL options are not asyncpg keyword arguments. TLS is verified instead.
+        binding = query.pop("channel_binding", None)
+        if binding == "require":
+            raise ValueError("Уберите channel_binding=require: asyncpg не поддерживает этот параметр")
+        if sslmode in {"require", "verify-ca", "verify-full"}:
+            connect_args["ssl"] = ssl.create_default_context()
+        elif sslmode is not None:
+            raise ValueError("Для внешней PostgreSQL используйте sslmode=require или verify-full")
+        address = address.set(query=query)
+    engine = create_async_engine(address, pool_pre_ping=True, connect_args=connect_args)
     return engine, async_sessionmaker(engine, expire_on_commit=False)

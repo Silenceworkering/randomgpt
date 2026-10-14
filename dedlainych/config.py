@@ -1,4 +1,6 @@
 from functools import lru_cache
+from typing import Literal
+import re
 from zoneinfo import ZoneInfo
 
 from pydantic import Field, SecretStr, field_validator
@@ -7,6 +9,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    run_mode: Literal["polling", "webhook"] = "polling"
+    webhook_secret: SecretStr = SecretStr("")
+    webhook_base_url: str = ""
+    port: int = Field(default=10000, ge=1, le=65535)
     bot_token: SecretStr = SecretStr("")
     database_url: SecretStr = SecretStr("postgresql+asyncpg://dedlainych:CHANGE_ME@db/dedlainych")
     admin_ids: list[int] = Field(default_factory=list)
@@ -18,6 +24,14 @@ class Settings(BaseSettings):
     group_code: str = "6104-ОБ"
     instance_lock_wait_seconds: int = Field(default=0, ge=0, le=600)
     max_file_bytes: int = Field(default=10 * 1024 * 1024, ge=1024, le=20 * 1024 * 1024)
+
+    @field_validator("webhook_secret")
+    @classmethod
+    def webhook_secret_valid(cls, value: SecretStr) -> SecretStr:
+        plain = value.get_secret_value()
+        if plain and not re.fullmatch(r"[A-Za-z0-9_-]{16,256}", plain):
+            raise ValueError("WEBHOOK_SECRET: от 16 до 256 букв, цифр, _ или -")
+        return value
 
     @field_validator("tz")
     @classmethod
