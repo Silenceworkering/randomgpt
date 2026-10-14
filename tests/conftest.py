@@ -1,39 +1,34 @@
-"""Synthetic prices belong to tests only, never to the production catalog."""
+import os
 
-import json
-from pathlib import Path
-import pytest
-from app.catalog import ITEMS
-from app.prices import BOOK, utcnow
+import pytest_asyncio
+from sqlalchemy.engine import make_url
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from dedlainych.db.models import Base, ConnectedChat, Subject
+from dedlainych.db.repositories import register
 
 
-@pytest.fixture(autouse=True)
-def isolated_prices(monkeypatch):
-    monkeypatch.setenv("PRICES_AUTO_REFRESH", "false")
-    values = json.loads((Path(__file__).parent / "fixtures/prices.json").read_text())
-    records = {}
-    sources = []
-    for item_id in ITEMS:
-        url = "https://www.kns.ru/product/test-fixture-" + item_id + "/"
-        snapshot = {
-            "price_rub": values.get(item_id, 1_000_000),
-            "available": True,
-            "checked_at": utcnow().isoformat(),
-            "method": "test_fixture",
-            "error": None,
-        }
-        sources.append(
-            {
-                "item_id": item_id,
-                "store": "Тестовый магазин",
-                "url": url,
-                "region": "Тест",
-                "match_tokens": [item_id],
-                "snapshot": snapshot,
-            }
+@pytest_asyncio.fixture
+async def database():
+    url = os.getenv("TEST_DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+    if not url.startswith("sqlite") and "test" not in (make_url(url).database or "").lower():
+        raise RuntimeError("TEST_DATABASE_URL должен указывать на отдельную БД с test в названии")
+    engine = create_async_engine(url)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+    sessions = async_sessionmaker(engine, expire_on_commit=False)
+    async with sessions() as session:
+        await register(session, 101, "6104-ОБ")
+        await register(session, 102, "6104-ОБ")
+        await register(session, 103, "other")
+        session.add_all(
+            [
+                Subject(group_code="6104-ОБ", name="Математика", aliases=["матеша", "матеше"]),
+                Subject(group_code="6104-ОБ", name="История", aliases=["истории"]),
+                ConnectedChat(id=-100123, group_code="6104-ОБ", title="Учёба"),
+            ]
         )
-        records[url] = snapshot
-    monkeypatch.setattr(BOOK, "sources", sources)
-    monkeypatch.setattr(BOOK, "records", records)
-    monkeypatch.setattr(BOOK, "refreshing", False)
-    monkeypatch.setattr(BOOK, "last_refresh_at", None)
+        await session.commit()
+    yield sessions
+    await engine.dispose()

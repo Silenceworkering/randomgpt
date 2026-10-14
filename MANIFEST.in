@@ -1,0 +1,5 @@
+include README.md alembic.ini requirements*.lock Dockerfile docker-compose.yml .env.example
+recursive-include alembic *.py *.mako
+recursive-include scripts *.py *.sh
+recursive-include docs *.md *.json
+recursive-include tests *.py

@@ -1,0 +1,42 @@
+name: Проверка Дедлайныча
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: testing
+          POSTGRES_DB: dedlainych_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:testing@localhost:5432/dedlainych_test
+      TEST_DATABASE_URL: postgresql+asyncpg://postgres:testing@localhost:5432/dedlainych_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip, cache-dependency-path: requirements.lock}
+      - run: pip install -r requirements-dev.lock && pip install --no-deps -e .
+      - run: python -m compileall -q dedlainych
+      - run: ruff check . && ruff format --check .
+      - run: python scripts/check_secrets.py
+      - run: alembic upgrade head && alembic check
+      - run: pytest -q
+      - run: python -m build --no-isolation
+      - run: docker build -t dedlainych:ci .
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AUTO_DEPLOY == 'true'
+    runs-on: [self-hosted, dedlainych]
+    environment: production
+    steps:
+      - name: Обновить выделенный сервер после успешных проверок
+        run: /opt/Dedlainych-AI/scripts/deploy.sh
