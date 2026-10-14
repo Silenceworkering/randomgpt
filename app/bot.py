@@ -10,12 +10,12 @@ from .engine import NoBuildError
 
 HELP = (
     "VOLTRIX ⚡ Подбор совместимого ПК без платных AI API.\n\n"
-    "/build 80000 gaming AMD NVIDIA\n"
-    "/build 45000 office Intel any\n\n"
+    "/build 160000 gaming AMD NVIDIA\n"
+    "/build 85000 office Intel any\n\n"
     "Задачи: gaming / игры, work / работа, office / офис.\n"
     "Бренды процессора: any, AMD, Intel. Видеокарты: any, AMD, NVIDIA.\n"
     "Бюджет: 15 000–500 000 ₽. Предпочтения можно пропустить.\n"
-    "Цены расчётные, не актуальные предложения магазинов. Сверяйте перед покупкой.\n"
+    "Цены со страниц магазинов с датой проверки. Проверьте перед покупкой.\n"
     "Бот не хранит сборки. Сохраняйте их на сайте в браузере."
 )
 
@@ -23,7 +23,7 @@ HELP = (
 def parse_build(text: str) -> RecommendRequest:
     args = text.split()[1:]
     if not 1 <= len(args) <= 4 or not re.fullmatch(r"\d{1,6}", args[0]):
-        raise ValueError("Формат: /build 80000 gaming AMD NVIDIA")
+        raise ValueError("Формат: /build 160000 gaming AMD NVIDIA")
     purpose = args[1].lower() if len(args) > 1 else "gaming"
     purpose = {"игры": "gaming", "работа": "work", "офис": "office"}.get(
         purpose, purpose
@@ -43,21 +43,32 @@ def format_build(result: dict, base_url: str) -> str:
     lines = ["VOLTRIX ⚡ Ваша сборка", ""]
     for category, item in result["components"].items():
         lines.append(
-            f"{CATEGORIES[category]}: {item['name']} — ~{item['calculation_rub']:,} ₽".replace(
+            f"{CATEGORIES[category]}: {item['name']} — {item['calculation_rub']:,} ₽".replace(
                 ",", " "
             )
         )
     lines += [
         "",
-        f"Итого: ~{result['total_rub']:,} ₽".replace(",", " "),
+        f"Итого: {result['total_rub']:,} ₽".replace(",", " "),
         f"Расчётный запас БП: от {result['compatibility']['recommended_psu_w']} Вт.",
-        "Цены примерные. Проверьте цены, BIOS/QVL и ревизии у производителя.",
+        "Цены на момент проверки. Доставка не учтена. Проверьте цены, BIOS/QVL и ревизии перед покупкой.",
     ]
+    for item in result["components"].values():
+        if not item["user_price"] and item.get("best_offer"):
+            offer = item["best_offer"]
+            lines.append(
+                f"{offer['store']} · {offer['checked_at'][:10]} · {item['name']}\n{offer['url']}"
+            )
     lines += result["compatibility"]["warnings"]
     if base_url:
         ids = ",".join(item["id"] for item in result["components"].values())
         lines += ["", f"{base_url}/configurator?parts={ids}"]
-    return "\n".join(lines)
+    text = "\n".join(lines)
+    return (
+        text
+        if len(text) <= 4096
+        else text[:3900] + "\nПолный состав и источники — на сайте: " + base_url
+    )
 
 
 def create_dispatcher(recommend_async, base_url: str) -> Dispatcher:
@@ -77,7 +88,7 @@ def create_dispatcher(recommend_async, base_url: str) -> Dispatcher:
             message_text = (
                 str(exc)
                 if isinstance(exc, NoBuildError)
-                else "Проверьте бюджет, задачу и бренды. Пример: /build 80000 gaming AMD NVIDIA"
+                else "Проверьте бюджет, задачу и бренды. Пример: /build 160000 gaming AMD NVIDIA"
             )
             await message.answer(message_text)
             return
@@ -86,7 +97,7 @@ def create_dispatcher(recommend_async, base_url: str) -> Dispatcher:
     @router.message()
     async def fallback(message: Message):
         await message.answer(
-            "Для подбора отправьте /build 80000 gaming. Все параметры: /help"
+            "Для подбора отправьте /build 160000 gaming. Все параметры: /help"
         )
 
     dispatcher = Dispatcher()

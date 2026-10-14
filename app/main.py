@@ -20,6 +20,7 @@ from .catalog import ITEMS, CATEGORIES, DATA, public_item
 from .schemas import BuildRequest, RecommendRequest, CompareRequest
 from .engine import evaluate, recommend, NoBuildError
 from .bot import create_dispatcher, register_webhook
+from .prices import BOOK
 
 load_dotenv()
 logger = logging.getLogger("voltrix")
@@ -76,6 +77,11 @@ async def lifespan(application):
     application.state.webhook_lock = asyncio.Lock()
     application.state.webhook_secret = ""
     task = None
+    price_task = (
+        asyncio.create_task(BOOK.run())
+        if os.getenv("PRICES_AUTO_REFRESH", "true").lower() == "true"
+        else None
+    )
     token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     url = (
         os.getenv("PUBLIC_BASE_URL", "").strip()
@@ -101,6 +107,10 @@ async def lifespan(application):
     try:
         yield
     finally:
+        if price_task:
+            price_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await price_task
         if task:
             task.cancel()
             with suppress(asyncio.CancelledError):
@@ -110,7 +120,7 @@ async def lifespan(application):
         # Do not delete webhook on shutdown: Render may stop/restart at any time.
 
 
-app = FastAPI(title="VOLTRIX API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="VOLTRIX API", version="1.1.0", lifespan=lifespan)
 
 
 @app.middleware("http")
@@ -151,15 +161,26 @@ async def health():
         "status": "ok",
         "telegram_configured": app.state.bot is not None,
         "telegram_registered": app.state.bot_ready,
+        "version": "1.1.0",
+        "pricing_mode": "retailer",
+        "price_refreshing": BOOK.refreshing,
+        "price_last_refresh_at": BOOK.last_refresh_at,
     }
 
 
 @app.get("/api/catalog")
 async def catalog():
+    snapshot = BOOK.snapshot()
     return {
-        "items": [public_item(i) for i in ITEMS.values()],
+        "items": [public_item(i, snapshot) for i in ITEMS.values()],
         "categories": CATEGORIES,
         "metadata": DATA["metadata"],
+        "price_status": {
+            "refreshing": BOOK.refreshing,
+            "last_refresh_at": BOOK.last_refresh_at,
+            "priced_items": sum(BOOK.best(i, snapshot) is not None for i in ITEMS),
+            "max_age_hours": 24,
+        },
     }
 
 
@@ -178,7 +199,8 @@ async def recommend_route(req: RecommendRequest):
 
 @app.post("/api/compare")
 async def compare(req: CompareRequest):
-    items = [public_item(ITEMS[i]) for i in req.ids]
+    snapshot = BOOK.snapshot()
+    items = [public_item(ITEMS[i], snapshot) for i in req.ids]
     keys = sorted(set().union(*(i["specs"] for i in items)))
     return {
         "items": items,

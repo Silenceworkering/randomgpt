@@ -1,8 +1,9 @@
-"""Read-only catalog shipped with the app: no runtime database or price scraping."""
+"""Read-only models and current in-memory retailer offers; no runtime database."""
 
 import json
 from pathlib import Path
 from urllib.parse import quote
+from .prices import BOOK
 
 DATA = json.loads((Path(__file__).parent / "data/catalog.json").read_text())
 CATEGORIES = {
@@ -22,7 +23,9 @@ GROUPS = {
 }
 
 
-def public_item(item: dict) -> dict:
+def public_item(item: dict, snapshot=None) -> dict:
+    offers = (snapshot if snapshot is not None else BOOK.snapshot()).get(item["id"], [])
+    best = BOOK.best(item["id"], snapshot)
     query = quote(item["name"])
     brand = (
         "Sapphire"
@@ -33,7 +36,10 @@ def public_item(item: dict) -> dict:
         brand = "MSI"
     return {
         **item,
-        "price_kind": "estimate",
+        "price_kind": "retailer" if best else "unknown",
+        "price_rub": best["price_rub"] if best else None,
+        "best_offer": best,
+        "offers": offers,
         "manufacturer_url": DATA["metadata"]["manufacturer_links"].get(brand),
         "stores": [
             {"name": "DNS", "url": "https://www.dns-shop.ru/search/?q=" + query},

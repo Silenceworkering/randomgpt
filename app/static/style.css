@@ -1744,3 +1744,102 @@ dialog::backdrop {
     padding: 16px;
   }
 }
+.hero-art img {
+  width: 100%;
+  height: 535px;
+  object-fit: contain;
+  max-width: 610px;
+  mix-blend-mode: lighten;
+  border-radius: 18px;
+}
+.preset-image img {
+  height: 220px;
+  width: 100%;
+  object-fit: cover;
+  object-position: 50% 40%;
+  transform: none;
+  margin: 0;
+  filter: none !important;
+}
+.image-caption {
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  color: #b5a6c8;
+  font-size: 9px;
+  background: #0b0b10c9;
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+.retail-offer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border: 1px solid #45304f;
+  background: #21162c;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+.retail-offer a {
+  color: #d7b1ff;
+  font-size: 13px;
+}
+.retail-offer span {
+  display: block;
+  color: #a894ba;
+  font-size: 10px;
+  margin-top: 6px;
+}
+.retail-offer b {
+  font-size: 14px;
+  white-space: nowrap;
+}
+.source-price-link {
+  color: #b893ed;
+  font-size: 11px;
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .hero-art img {
+    height: 340px;
+    width: 100%;
+    max-width: 100%;
+    object-fit: contain;
+  }
+  .preset-image img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+    min-height: 175px;
+  }
+  .retail-offer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .image-caption {
+    font-size: 7px;
+    right: 3px;
+    bottom: 5px;
+  }
+}
+.preset-image {
+  height: 220px;
+}
+.preset-image img {
+  height: 100%;
+  object-fit: contain;
+  background: #0b0b10;
+}
+@media (max-width: 600px) {
+  .preset-image {
+    height: 100%;
+    min-height: 180px;
+  }
+  .preset-image img {
+    height: 100%;
+    min-height: 180px;
+    object-fit: cover;
+  }
+}

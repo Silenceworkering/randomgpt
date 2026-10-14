@@ -4,6 +4,7 @@ import math
 from itertools import product
 from .catalog import ITEMS, GROUPS, CATEGORIES, public_item
 from .schemas import BuildRequest, RecommendRequest
+from .prices import BOOK
 
 
 class NoBuildError(ValueError):
@@ -11,7 +12,10 @@ class NoBuildError(ValueError):
 
 
 def price(item, overrides):
-    return overrides.get(item["id"], item["estimate_rub"])
+    if item["id"] in overrides:
+        return overrides[item["id"]]
+    offer = BOOK.best(item["id"])
+    return offer["price_rub"] if offer else None
 
 
 def compatibility(parts: dict[str, dict]) -> dict:
@@ -93,7 +97,9 @@ def compatibility(parts: dict[str, dict]) -> dict:
         "Кулер слишком высокий для корпуса.",
     )
     consumption = c.get("power_w", 0) + g.get("power_w", 0) + 60
-    required = math.ceil(consumption * 1.35 / 50) * 50
+    required = max(
+        math.ceil(consumption * 1.35 / 50) * 50, g.get("recommended_psu_w", 0)
+    )
     check(
         "power",
         c and p,
@@ -158,19 +164,35 @@ def compatibility(parts: dict[str, dict]) -> dict:
     }
 
 
-def evaluate(request: BuildRequest) -> dict:
+def evaluate(request: BuildRequest, snapshot=None) -> dict:
+    snapshot = BOOK.snapshot() if snapshot is None else snapshot
     parts = {k: ITEMS[v] for k, v in request.components.items()}
+    components = {}
+    for category, item in parts.items():
+        public = public_item(item, snapshot)
+        custom = item["id"] in request.price_overrides
+        amount = request.price_overrides[item["id"]] if custom else public["price_rub"]
+        components[category] = {
+            **public,
+            "calculation_rub": amount,
+            "user_price": custom,
+            "calculation_source": (
+                "user" if custom else "retailer" if amount is not None else "unknown"
+            ),
+        }
+    unknown = [i["id"] for i in components.values() if i["calculation_rub"] is None]
+    known = sum(
+        i["calculation_rub"]
+        for i in components.values()
+        if i["calculation_rub"] is not None
+    )
     return {
-        "components": {
-            k: {
-                **public_item(v),
-                "calculation_rub": price(v, request.price_overrides),
-                "user_price": v["id"] in request.price_overrides,
-            }
-            for k, v in parts.items()
-        },
-        "total_rub": sum(price(v, request.price_overrides) for v in parts.values()),
-        "price_kind": "mixed" if request.price_overrides else "estimate",
+        "components": components,
+        "total_rub": None if unknown else known,
+        "known_total_rub": known,
+        "pricing_complete": not unknown,
+        "unpriced_ids": unknown,
+        "price_kind": "mixed" if request.price_overrides else "retailer",
         "compatibility": compatibility(parts),
     }
 
@@ -196,14 +218,29 @@ def utility(c, g, ram, ssd, purpose):
 
 
 def recommend(req: RecommendRequest) -> dict:
+    snapshot = BOOK.snapshot()
+    prices = {
+        item_id: offer["price_rub"]
+        for item_id in ITEMS
+        if (offer := BOOK.best(item_id, snapshot))
+    }
+    prices.update(req.price_overrides)
+    groups = {k: [i for i in items if i["id"] in prices] for k, items in GROUPS.items()}
+    absent = [CATEGORIES[k] for k, items in groups.items() if k != "gpu" and not items]
+    if absent:
+        raise NoBuildError(
+            "Нет свежих цен для категорий: "
+            + ", ".join(absent)
+            + ". Откройте каталог, проверьте предложения или укажите свои цены. Подбор по неподтверждённым суммам отключён."
+        )
     cpus = [
         c
-        for c in GROUPS["cpu"]
+        for c in groups["cpu"]
         if req.cpu_brand == "any" or c["brand"] == req.cpu_brand
     ]
     gpus = [
         g
-        for g in GROUPS["gpu"]
+        for g in groups["gpu"]
         if req.gpu_brand == "any" or g["brand"] == req.gpu_brand
     ]
     # Gaming always gets a discrete card; integrated graphics allowed for office/work
@@ -211,8 +248,7 @@ def recommend(req: RecommendRequest) -> dict:
     if req.purpose != "gaming" and req.gpu_brand == "any":
         gpus = [None] + gpus
     best, best_key, minimum = None, None, None
-    prices = req.price_overrides
-    for cpu, board, ram in product(cpus, GROUPS["motherboard"], GROUPS["ram"]):
+    for cpu, board, ram in product(cpus, groups["motherboard"], groups["ram"]):
         if (
             cpu["id"] not in board["specs"]["supported_cpus"]
             or ram["specs"]["memory_type"] != board["specs"]["memory_type"]
@@ -227,9 +263,9 @@ def recommend(req: RecommendRequest) -> dict:
             # Auxiliary parts provide no artificial score bonus: pick cheapest valid trio.
             aux = None
             for cooler, case, psu in product(
-                GROUPS["cooler"], GROUPS["case"], GROUPS["psu"]
+                groups["cooler"], groups["case"], groups["psu"]
             ):
-                cost = sum(price(i, prices) for i in [cooler, case, psu])
+                cost = sum(prices[i["id"]] for i in [cooler, case, psu])
                 if aux and cost >= aux[0]:
                     continue
                 candidate = {**base, "cooler": cooler, "case": case, "psu": psu}
@@ -237,9 +273,9 @@ def recommend(req: RecommendRequest) -> dict:
                     aux = (cost, candidate)
             if not aux:
                 continue
-            for ssd in GROUPS["ssd"]:
+            for ssd in groups["ssd"]:
                 parts = {**aux[1], "ssd": ssd}
-                total = sum(price(i, prices) for i in parts.values())
+                total = sum(prices[i["id"]] for i in parts.values())
                 minimum = total if minimum is None else min(total, minimum)
                 if total > req.budget:
                     continue
@@ -259,12 +295,14 @@ def recommend(req: RecommendRequest) -> dict:
         raise NoBuildError(
             "Не удалось подобрать полный совместимый ПК в пределах бюджета."
             + suffix
-            + " Увеличьте бюджет или измените предпочтения."
+            + " Увеличьте бюджет, измените предпочтения или проверьте цены других магазинов. Учитываются только доступные свежие предложения и ваши цены."
         )
     result = evaluate(
         BuildRequest(
-            components={k: v["id"] for k, v in best.items()}, price_overrides=prices
-        )
+            components={k: v["id"] for k, v in best.items()},
+            price_overrides=req.price_overrides,
+        ),
+        snapshot=snapshot,
     )
     result.update(
         budget=req.budget,

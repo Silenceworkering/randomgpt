@@ -27,7 +27,7 @@ def test_pages(client, path):
 def test_catalog_and_prices(client):
     data = client.get("/api/catalog").json()
     assert len(data["categories"]) == 8
-    assert all(i["price_kind"] == "estimate" for i in data["items"])
+    assert all(i["price_kind"] == "retailer" for i in data["items"])
     assert all(len(i["stores"]) == 3 for i in data["items"])
 
 
@@ -143,7 +143,7 @@ def test_bot_uses_same_algorithm(command):
     )
     result = recommend(request)
     text = format_build(result, "https://example.onrender.com")
-    assert "Цены примерные" in text and "/configurator?parts=" in text
+    assert "Цены на момент проверки" in text and "/configurator?parts=" in text
     assert all(i["name"] in text for i in result["components"].values())
 
 
@@ -257,4 +257,7 @@ def test_real_aiogram_build_handler(monkeypatch):
 
     asyncio.run(run())
     search.assert_awaited_once_with(req)
-    assert answer.await_count == 1 and "Цены примерные" in answer.call_args.args[0]
+    assert (
+        answer.await_count == 1
+        and "Цены на момент проверки" in answer.call_args.args[0]
+    )

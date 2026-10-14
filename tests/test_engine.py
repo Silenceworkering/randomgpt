@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from app.catalog import ITEMS, GROUPS
 from app.engine import compatibility, recommend, evaluate, utility, NoBuildError
 from app.schemas import BuildRequest, RecommendRequest, CompareRequest
+from app.engine import price
 
 BASE = {
     "cpu": "r5600",
@@ -115,7 +116,7 @@ def test_user_price_changes_calculation():
     assert checked["components"]["cpu"]["calculation_rub"] == 100
     assert (
         checked["total_rub"]
-        == sum(ITEMS[id]["estimate_rub"] for id in BASE.values()) - 10400
+        == sum(price(ITEMS[id], {}) for id in BASE.values()) - 10400
     )
     expensive = {i["id"]: 2000000 for i in GROUPS["gpu"]}
     with pytest.raises(NoBuildError):
@@ -175,7 +176,7 @@ def test_optimum_matches_exhaustive_reference(monkeypatch):
     categories = list(subset)
     for combo in product(*(GROUPS[k] for k in categories)):
         build = dict(zip(categories, combo))
-        cost = sum(i["estimate_rub"] for i in combo)
+        cost = sum(price(i, {}) for i in combo)
         if cost <= req.budget and compatibility(build)["compatible"]:
             score = utility(
                 build["cpu"], build["gpu"], build["ram"], build["ssd"], "gaming"

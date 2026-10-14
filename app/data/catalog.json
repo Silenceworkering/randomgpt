@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "price_kind": "estimate",
-    "price_notice": "Расчётные примерные цены, не актуальные предложения магазинов. Наличие и цены проверяйте у продавца. Можно указать свои цены.",
+    "price_kind": "retailer",
+    "price_notice": "Цены со страниц магазинов: источник и время проверки указаны у каждого предложения. Цена и наличие могут измениться, доставка не учтена. Без подтверждённой цены товар не участвует в подборе.",
     "spec_notice": "Справочные характеристики. Перед покупкой проверьте точную ревизию, CPU Support List/BIOS, QVL памяти, комплект креплений кулера и разъёмы питания на сайте производителя. Баллы, тепловой запас и потребление — оценки VOLTRIX, не результаты бенчмарков.",
     "manufacturer_links": {
       "AMD": "https://www.amd.com/",
@@ -22,7 +22,6 @@
       "category": "cpu",
       "name": "AMD Ryzen 5 5600",
       "brand": "AMD",
-      "estimate_rub": 10500,
       "specs": {
         "socket": "AM4",
         "memory_types": ["DDR4"],
@@ -38,7 +37,6 @@
       "category": "cpu",
       "name": "AMD Ryzen 5 5600G",
       "brand": "AMD",
-      "estimate_rub": 12000,
       "specs": {
         "socket": "AM4",
         "memory_types": ["DDR4"],
@@ -55,7 +53,6 @@
       "category": "cpu",
       "name": "AMD Ryzen 5 7600",
       "brand": "AMD",
-      "estimate_rub": 18500,
       "specs": {
         "socket": "AM5",
         "memory_types": ["DDR5"],
@@ -72,7 +69,6 @@
       "category": "cpu",
       "name": "AMD Ryzen 7 7700",
       "brand": "AMD",
-      "estimate_rub": 27000,
       "specs": {
         "socket": "AM5",
         "memory_types": ["DDR5"],
@@ -89,7 +85,6 @@
       "category": "cpu",
       "name": "Intel Core i3-12100",
       "brand": "Intel",
-      "estimate_rub": 11000,
       "specs": {
         "socket": "LGA1700",
         "memory_types": ["DDR4", "DDR5"],
@@ -106,7 +101,6 @@
       "category": "cpu",
       "name": "Intel Core i5-12400F",
       "brand": "Intel",
-      "estimate_rub": 11000,
       "specs": {
         "socket": "LGA1700",
         "memory_types": ["DDR4", "DDR5"],
@@ -122,7 +116,6 @@
       "category": "cpu",
       "name": "Intel Core i5-13400F",
       "brand": "Intel",
-      "estimate_rub": 18500,
       "specs": {
         "socket": "LGA1700",
         "memory_types": ["DDR4", "DDR5"],
@@ -138,7 +131,6 @@
       "category": "motherboard",
       "name": "MSI B550M PRO-VDH WIFI",
       "brand": "MSI",
-      "estimate_rub": 10500,
       "specs": {
         "socket": "AM4",
         "memory_type": "DDR4",
@@ -155,7 +147,6 @@
       "category": "motherboard",
       "name": "MSI PRO B650M-A WIFI",
       "brand": "MSI",
-      "estimate_rub": 16500,
       "specs": {
         "socket": "AM5",
         "memory_type": "DDR5",
@@ -171,7 +162,6 @@
       "category": "motherboard",
       "name": "ASUS PRIME H610M-K D4",
       "brand": "ASUS",
-      "estimate_rub": 7000,
       "specs": {
         "socket": "LGA1700",
         "memory_type": "DDR4",
@@ -188,7 +178,6 @@
       "category": "motherboard",
       "name": "MSI PRO B760M-A WIFI DDR4",
       "brand": "MSI",
-      "estimate_rub": 14000,
       "specs": {
         "socket": "LGA1700",
         "memory_type": "DDR4",
@@ -204,7 +193,6 @@
       "category": "motherboard",
       "name": "MSI PRO B760M-A WIFI",
       "brand": "MSI",
-      "estimate_rub": 16000,
       "specs": {
         "socket": "LGA1700",
         "memory_type": "DDR5",
@@ -220,7 +208,6 @@
       "category": "ram",
       "name": "Kingston FURY Beast 16 ГБ (2×8) DDR4-3200",
       "brand": "Kingston",
-      "estimate_rub": 4000,
       "specs": {
         "memory_type": "DDR4",
         "capacity_gb": 16,
@@ -234,7 +221,6 @@
       "category": "ram",
       "name": "Kingston FURY Beast 32 ГБ (2×16) DDR4-3200",
       "brand": "Kingston",
-      "estimate_rub": 7000,
       "specs": {
         "memory_type": "DDR4",
         "capacity_gb": 32,
@@ -248,7 +234,6 @@
       "category": "ram",
       "name": "Kingston FURY Beast 16 ГБ (2×8) DDR5-5200",
       "brand": "Kingston",
-      "estimate_rub": 6500,
       "specs": {
         "memory_type": "DDR5",
         "capacity_gb": 16,
@@ -262,7 +247,6 @@
       "category": "ram",
       "name": "Kingston FURY Beast 32 ГБ (2×16) DDR5-6000",
       "brand": "Kingston",
-      "estimate_rub": 10500,
       "specs": {
         "memory_type": "DDR5",
         "capacity_gb": 32,
@@ -276,7 +260,6 @@
       "category": "gpu",
       "name": "MSI GeForce RTX 4060 VENTUS 2X BLACK 8G OC",
       "brand": "NVIDIA",
-      "estimate_rub": 33000,
       "specs": {
         "vram_gb": 8,
         "power_w": 115,
@@ -291,7 +274,6 @@
       "category": "gpu",
       "name": "MSI GeForce RTX 4060 Ti VENTUS 2X BLACK 8G OC",
       "brand": "NVIDIA",
-      "estimate_rub": 45000,
       "specs": {
         "vram_gb": 8,
         "power_w": 160,
@@ -306,7 +288,6 @@
       "category": "gpu",
       "name": "MSI GeForce RTX 4070 VENTUS 2X E 12G OC",
       "brand": "NVIDIA",
-      "estimate_rub": 65000,
       "specs": {
         "vram_gb": 12,
         "power_w": 200,
@@ -321,7 +302,6 @@
       "category": "gpu",
       "name": "Sapphire PULSE Radeon RX 6600 8 ГБ",
       "brand": "AMD",
-      "estimate_rub": 23000,
       "specs": {
         "vram_gb": 8,
         "power_w": 132,
@@ -336,7 +316,6 @@
       "category": "gpu",
       "name": "Sapphire PULSE Radeon RX 7600 8 ГБ",
       "brand": "AMD",
-      "estimate_rub": 29000,
       "specs": {
         "vram_gb": 8,
         "power_w": 165,
@@ -351,7 +330,6 @@
       "category": "gpu",
       "name": "Sapphire PULSE Radeon RX 7700 XT 12 ГБ",
       "brand": "AMD",
-      "estimate_rub": 46000,
       "specs": {
         "vram_gb": 12,
         "power_w": 230,
@@ -366,7 +344,6 @@
       "category": "gpu",
       "name": "Sapphire PULSE Radeon RX 7800 XT 16 ГБ",
       "brand": "AMD",
-      "estimate_rub": 55000,
       "specs": {
         "vram_gb": 16,
         "power_w": 263,
@@ -381,7 +358,6 @@
       "category": "ssd",
       "name": "Kingston NV2 500 ГБ",
       "brand": "Kingston",
-      "estimate_rub": 3500,
       "specs": {
         "capacity_gb": 500,
         "interface": "M.2 NVMe",
@@ -394,7 +370,6 @@
       "category": "ssd",
       "name": "WD Blue SN580 1 ТБ",
       "brand": "Western Digital",
-      "estimate_rub": 6500,
       "specs": {
         "capacity_gb": 1000,
         "interface": "M.2 NVMe",
@@ -407,7 +382,6 @@
       "category": "ssd",
       "name": "WD Black SN770 2 ТБ",
       "brand": "Western Digital",
-      "estimate_rub": 12000,
       "specs": {
         "capacity_gb": 2000,
         "interface": "M.2 NVMe",
@@ -420,7 +394,6 @@
       "category": "psu",
       "name": "DeepCool PK550D",
       "brand": "DeepCool",
-      "estimate_rub": 4500,
       "specs": {
         "wattage": 550,
         "pcie_8pin": 2,
@@ -434,7 +407,6 @@
       "category": "psu",
       "name": "DeepCool PK650D",
       "brand": "DeepCool",
-      "estimate_rub": 5500,
       "specs": {
         "wattage": 650,
         "pcie_8pin": 2,
@@ -448,7 +420,6 @@
       "category": "psu",
       "name": "DeepCool PM750D",
       "brand": "DeepCool",
-      "estimate_rub": 8500,
       "specs": {
         "wattage": 750,
         "pcie_8pin": 4,
@@ -462,7 +433,6 @@
       "category": "case",
       "name": "DeepCool MATREXX 40",
       "brand": "DeepCool",
-      "estimate_rub": 4500,
       "specs": {
         "board_forms": ["mATX", "ITX"],
         "max_gpu_mm": 320,
@@ -477,7 +447,6 @@
       "category": "case",
       "name": "DeepCool CC560",
       "brand": "DeepCool",
-      "estimate_rub": 5500,
       "specs": {
         "board_forms": ["ATX", "mATX", "ITX"],
         "max_gpu_mm": 370,
@@ -492,7 +461,6 @@
       "category": "case",
       "name": "Cooler Master MasterBox Q300L",
       "brand": "Cooler Master",
-      "estimate_rub": 6500,
       "specs": {
         "board_forms": ["mATX", "ITX"],
         "max_gpu_mm": 360,
@@ -507,7 +475,6 @@
       "category": "cooler",
       "name": "DeepCool AG200",
       "brand": "DeepCool",
-      "estimate_rub": 1500,
       "specs": {
         "sockets": ["AM4", "AM5", "LGA1700"],
         "height_mm": 133,
@@ -519,7 +486,6 @@
       "category": "cooler",
       "name": "DeepCool AG400",
       "brand": "DeepCool",
-      "estimate_rub": 2500,
       "specs": {
         "sockets": ["AM4", "AM5", "LGA1700"],
         "height_mm": 150,
@@ -531,11 +497,77 @@
       "category": "cooler",
       "name": "DeepCool AK620",
       "brand": "DeepCool",
-      "estimate_rub": 6000,
       "specs": {
         "sockets": ["AM4", "AM5", "LGA1700"],
         "height_mm": 160,
         "thermal_budget_w": 220
+      }
+    },
+    {
+      "id": "rtx5060max",
+      "category": "gpu",
+      "name": "MSI GeForce RTX 5060 8G SHADOW 2X OC MAX",
+      "brand": "NVIDIA",
+      "specs": {
+        "vram_gb": 8,
+        "power_w": 145,
+        "length_mm": 197,
+        "width_slots": 2,
+        "pcie_8pin": 1,
+        "score": 85,
+        "recommended_psu_w": 550
+      }
+    },
+    {
+      "id": "nv3-1",
+      "category": "ssd",
+      "name": "Kingston NV3 1 ТБ",
+      "brand": "Kingston",
+      "specs": {
+        "capacity_gb": 1000,
+        "interface": "M.2 NVMe",
+        "form_factor": "2280",
+        "part_number": "SNV3S/1000G"
+      }
+    },
+    {
+      "id": "pn750",
+      "category": "psu",
+      "name": "DeepCool PN750D",
+      "brand": "DeepCool",
+      "specs": {
+        "wattage": 750,
+        "pcie_8pin": 2,
+        "form_factor": "ATX",
+        "length_mm": 140,
+        "efficiency": "80 PLUS Gold"
+      }
+    },
+    {
+      "id": "cc560v2",
+      "category": "case",
+      "name": "DeepCool CC560 V2 Black",
+      "brand": "DeepCool",
+      "specs": {
+        "board_forms": ["ATX", "mATX", "ITX"],
+        "max_gpu_mm": 370,
+        "max_gpu_slots": 7,
+        "max_cooler_mm": 163,
+        "psu_form": "ATX",
+        "max_psu_mm": 170
+      }
+    },
+    {
+      "id": "ddr5-new32",
+      "category": "ram",
+      "name": "Kingston FURY Beast 32 ГБ (2×16) DDR5-6000, новая ревизия",
+      "brand": "Kingston",
+      "specs": {
+        "memory_type": "DDR5",
+        "capacity_gb": 32,
+        "modules": 2,
+        "speed_mt": 6000,
+        "part_number": "KF560C36BBE2K2-32"
       }
     }
   ]

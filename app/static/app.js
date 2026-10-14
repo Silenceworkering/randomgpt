@@ -9,7 +9,10 @@ const esc = (value) =>
         c
       ],
   );
-const money = (n) => new Intl.NumberFormat("ru-RU").format(n) + " ₽";
+const money = (n) =>
+  n === null || n === undefined
+    ? "Цена не подтверждена"
+    : new Intl.NumberFormat("ru-RU").format(n) + " ₽";
 const icons = {
   cpu: "▣",
   gpu: "▤",
@@ -157,7 +160,7 @@ function pageHead(kicker, title, description) {
   return `<div class="page-head"><div class="eyebrow"><span class="live-dot"></span>${kicker}</div><h1>${title}</h1><p class="subtitle">${description}</p></div>`;
 }
 function priceNotice() {
-  return `<div class="notice">${esc(state.metadata.price_notice)}</div>`;
+  return `<div class="notice">${esc(state.metadata.price_notice)}<br><span class="micro">Свежая цена найдена для ${state.items.filter((i) => marketPrice(i) !== null).length} из ${state.items.length} моделей.${state.priceStatus?.refreshing ? " Обновляем предложения…" : ""}</span></div>`;
 }
 function errorMarkup(message) {
   return `<div class="error-box" role="alert">${esc(message)}</div>`;
@@ -225,40 +228,74 @@ function persistDraft() {
     price_overrides: state.prices,
   });
 }
+function marketPrice(item) {
+  const offer = item.best_offer;
+  if (!offer || !offer.fresh || !offer.available) return null;
+  const age = Date.now() - Date.parse(offer.checked_at);
+  return age >= 0 && age <= 24 * 3600 * 1000 ? offer.price_rub : null;
+}
 function currentPrice(item) {
-  return state.prices[item.id] ?? item.estimate_rub;
+  return state.prices[item.id] ?? marketPrice(item);
+}
+function offerNote(item) {
+  const offer = item.best_offer;
+  if (!offer || marketPrice(item) === null) {
+    const offers = item.offers || [];
+    return offers.some((o) => o.fresh && !o.available)
+      ? "Нет в наличии у проверенных продавцов"
+      : "Нет свежей подтверждённой цены";
+  }
+  const checked = new Date(offer.checked_at).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${offer.store} · ${offer.region} · ${offer.method === "page_snapshot" ? "снимок страницы" : "проверено"} ${checked}`;
+}
+function offerMarkup(item) {
+  return (
+    (item.offers || [])
+      .map(
+        (offer) =>
+          `<div class="retail-offer"><div><a href="${esc(offer.url)}" target="_blank" rel="noopener noreferrer">${esc(offer.store)} →</a><span>${esc(offer.region)} · ${esc(new Date(offer.checked_at).toLocaleString("ru-RU"))}</span><span>${offer.method === "page_snapshot" ? "Снимок страницы источника" : "Прямое обновление из магазина"}${offer.error ? " · обновление временно недоступно" : ""}</span></div><b>${!offer.fresh ? "Данные устарели" : !offer.available ? "Нет в наличии" : money(offer.price_rub)}</b></div>`,
+      )
+      .join("") ||
+    '<p class="micro">Проверенных предложений для этой модели пока нет. Укажите найденную цену вручную.</p>'
+  );
 }
 function renderHome() {
   $("#main").innerHTML =
-    `<div class="page-enter"><section class="hero"><div class="hero-copy"><div class="eyebrow"><span class="live-dot"></span>ТВОЯ СЛЕДУЮЩАЯ СБОРКА НАЧИНАЕТСЯ ЗДЕСЬ</div><h1>ТВОЙ ПК.<br><span class="gradient-text">ТВОИ ПРАВИЛА.</span></h1><p class="hero-description">От первой детали до идеальной сборки.<br>Подбирай комплектующие, проверяй совместимость<br>и находи свой баланс цены и мощности.</p><div class="actions"><a class="button" href="/configurator" data-route>Собрать свой ПК <span>→</span></a><a class="button secondary" href="/smart" data-route><span>✧</span> Подобрать под бюджет</a></div><div class="hero-note"><span>Бесплатно</span><span>Без регистрации</span><span>Проверка совместимости</span></div></div><div class="hero-art"><img src="/static/pc.svg" alt="Чёрный системный блок VOLTRIX с фиолетовой подсветкой" width="620" height="620"><div class="art-tag">Точность в каждой детали<strong>✓ Совместимость под контролем</strong></div><span class="art-label">СОЗДАН ДЛЯ ТВОЕГО СЛЕДУЮЩЕГО УРОВНЯ</span></div></section>
+    `<div class="page-enter"><section class="hero"><div class="hero-copy"><div class="eyebrow"><span class="live-dot"></span>ТВОЯ СЛЕДУЮЩАЯ СБОРКА НАЧИНАЕТСЯ ЗДЕСЬ</div><h1>ТВОЙ ПК.<br><span class="gradient-text">ТВОИ ПРАВИЛА.</span></h1><p class="hero-description">От первой детали до идеальной сборки.<br>Подбирай комплектующие, проверяй совместимость<br>и находи свой баланс цены и мощности.</p><div class="actions"><a class="button" href="/configurator" data-route>Собрать свой ПК <span>→</span></a><a class="button secondary" href="/smart" data-route><span>✧</span> Подобрать под бюджет</a></div><div class="hero-note"><span>Бесплатно</span><span>Без регистрации</span><span>Проверка совместимости</span></div></div><div class="hero-art"><img src="/static/pc-build.webp" alt="Фотореалистичная AI-визуализация ПК с чёрным корпусом и фиолетовой подсветкой" width="1024" height="1536"><div class="art-tag">Точность в каждой детали<strong>✓ Совместимость под контролем</strong></div><span class="art-label">AI-ВИЗУАЛИЗАЦИЯ · ВИД СБОРКИ ЗАВИСИТ ОТ ДЕТАЛЕЙ</span></div></section>
  <div class="summary-strip"><div><b>${state.items.length}</b><span>реальных моделей<br>в стартовом каталоге</span></div><div><b>8</b><span>категорий<br>комплектующих</span></div><div><b>12</b><span>правил проверки<br>совместимости</span></div><div><b>0 ₽</b><span>за подбор<br>твоей сборки</span></div></div>
- <section class="section"><div class="smart-banner"><div><span class="feature-icon">✧</span><div class="eyebrow">УМНЫЙ ПОДБОР · БЕЗ МАГИИ</div><h2>Бюджет твой. Подбор наш.</h2><p class="subtitle">Укажи сумму и задачу — алгоритм найдёт совместимую сборку с лучшей оценкой в нашем каталоге.</p><p class="micro">Примерные цены для расчёта. Проверяй предложения магазинов перед покупкой.</p></div><form id="quick-form" class="quick-form"><label class="field">Твой бюджет, ₽<input name="budget" type="number" min="15000" max="500000" step="1000" value="80000" required></label><label class="field">Для чего нужен ПК?<select name="purpose"><option value="gaming">Игры</option><option value="work">Работа и творчество</option><option value="office">Офис и учёба</option></select></label><button class="button" type="submit">Найти мою сборку <span>→</span></button></form></div></section>
+ <section class="section"><div class="smart-banner"><div><span class="feature-icon">✧</span><div class="eyebrow">УМНЫЙ ПОДБОР · БЕЗ МАГИИ</div><h2>Бюджет твой. Подбор наш.</h2><p class="subtitle">Укажи сумму и задачу — алгоритм найдёт совместимую сборку с лучшей оценкой в нашем каталоге.</p><p class="micro">Цены магазинов с источником и временем проверки. Доставка не включена.</p></div><form id="quick-form" class="quick-form"><label class="field">Твой бюджет, ₽<input name="budget" type="number" min="15000" max="500000" step="1000" value="160000" required></label><label class="field">Для чего нужен ПК?<select name="purpose"><option value="gaming">Игры</option><option value="work">Работа и творчество</option><option value="office">Офис и учёба</option></select></label><button class="button" type="submit">Найти мою сборку <span>→</span></button></form></div></section>
  <section class="section"><div class="section-head"><div><div class="eyebrow">ОТПРАВНАЯ ТОЧКА</div><h2>Три задачи. Три подхода.</h2><p class="subtitle">Подборки рассчитываются из каталога при открытии.</p></div><a class="text-link" href="/smart" data-route>Все возможности →</a></div><div class="build-grid">${[
    [
      "gaming",
      "ИГРОВОЙ",
      "Для твоих побед",
      "Приоритет видеокарте и сбалансированной платформе.",
-     80000,
+     160000,
    ],
    [
      "work",
      "РАБОЧИЙ",
      "Для больших идей",
      "Больше внимания процессору, памяти и накопителю.",
-     110000,
+     180000,
    ],
    [
      "office",
      "ПОВСЕДНЕВНЫЙ",
      "Для каждого дня",
      "Учёба, офис и браузер. Только нужная мощность.",
-     45000,
+     85000,
    ],
  ]
    .map(
      ([purpose, badge, title, desc, budget]) =>
-       `<article class="preset-card"><div class="preset-image"><img src="/static/pc.svg" alt="" loading="lazy" width="210" height="210"><span class="badge">${badge}</span></div><div class="preset-info"><h3>${title}</h3><p>${desc}</p><div class="preset-bottom"><b>до ${money(budget)}</b><button class="button small secondary" data-preset="${purpose}" data-budget="${budget}">Подобрать →</button></div></div></article>`,
+       `<article class="preset-card"><div class="preset-image"><img src="/static/pc-build.webp" alt="" loading="lazy" width="210" height="210"><span class="badge">${badge}</span><span class="image-caption">AI-визуализация</span></div><div class="preset-info"><h3>${title}</h3><p>${desc}</p><div class="preset-bottom"><b>до ${money(budget)}</b><button class="button small secondary" data-preset="${purpose}" data-budget="${budget}">Подобрать →</button></div></div></article>`,
    )
    .join("")}</div></section>
  <section class="section"><div class="section-head"><div><div class="eyebrow">ПРОЩЕ, ЧЕМ КАЖЕТСЯ</div><h2>От идеи до готовой сборки</h2></div></div><div class="steps"><article class="step"><span class="step-number">01 / ВЫБЕРИ</span><h3>Детали, которые подходят тебе</h3><p>Изучи характеристики и сравни до четырёх моделей. Открой поиск у продавцов, чтобы проверить цены.</p></article><article class="step"><span class="step-number">02 / ПРОВЕРЬ</span><h3>Пусть всё работает вместе</h3><p>Сокеты, тип памяти, мощность и размеры. Конфигуратор покажет ошибки и подскажет, что проверить.</p></article><article class="step"><span class="step-number">03 / СОХРАНИ</span><h3>Твоя сборка всегда под рукой</h3><p>Сохрани в этом браузере или экспортируй в файл. Вернись к сборке, когда будешь готов к покупке.</p></article></div></section></div>`;
@@ -280,7 +317,7 @@ function renderHome() {
   );
 }
 function productCard(item) {
-  return `<article class="product-card"><div class="product-visual" aria-hidden="true">${icons[item.category]}</div><span class="brand">${esc(item.brand)}</span><h3>${esc(item.name)}</h3><p class="spec-summary">${esc(brief(item))}</p><div class="product-price">~${money(item.estimate_rub)}</div><span class="price-label">Примерная цена · не предложение магазина</span><div class="product-actions"><button class="button secondary" data-detail="${item.id}">Подробнее →</button><button class="button ghost" data-add="${item.id}">+ В сборку</button><button class="icon-button" data-compare="${item.id}" aria-label="Сравнить ${esc(item.name)}" aria-pressed="${state.compare.includes(item.id)}" title="Сравнить">⇄</button></div></article>`;
+  return `<article class="product-card"><div class="product-visual" aria-hidden="true">${icons[item.category]}</div><span class="brand">${esc(item.brand)}</span><h3>${esc(item.name)}</h3><p class="spec-summary">${esc(brief(item))}</p><div class="product-price">${money(marketPrice(item))}</div><span class="price-label">${esc(offerNote(item))}</span><div class="product-actions"><button class="button secondary" data-detail="${item.id}">Подробнее →</button><button class="button ghost" data-add="${item.id}">+ В сборку</button><button class="icon-button" data-compare="${item.id}" aria-label="Сравнить ${esc(item.name)}" aria-pressed="${state.compare.includes(item.id)}" title="Сравнить">⇄</button></div></article>`;
 }
 function renderCatalog() {
   $("#main").innerHTML =
@@ -323,13 +360,14 @@ function filteredItems(category, search) {
 }
 function renderCatalogResults() {
   let items = filteredItems(state.category, state.search);
-  items.sort((a, b) =>
-    state.sort === "name"
-      ? a.name.localeCompare(b.name, "ru")
-      : state.sort === "price-desc"
-        ? b.estimate_rub - a.estimate_rub
-        : a.estimate_rub - b.estimate_rub,
-  );
+  items.sort((a, b) => {
+    if (state.sort === "name") return a.name.localeCompare(b.name, "ru");
+    if (a.price_rub === null) return b.price_rub === null ? 0 : 1;
+    if (b.price_rub === null) return -1;
+    return state.sort === "price-desc"
+      ? b.price_rub - a.price_rub
+      : a.price_rub - b.price_rub;
+  });
   $("#catalog-results").innerHTML =
     `<p class="filters-note">${esc(state.categories[state.category])} · найдено ${items.length}</p>${items.length ? `<div class="product-grid">${items.map(productCard).join("")}</div>` : emptyMarkup("Ничего не найдено", "Попробуйте другое название или категорию.")}`;
   bindProducts($("#catalog-results"));
@@ -358,7 +396,7 @@ function detail(id) {
       )
       .join(
         "",
-      )}</div><div class="product-price">~${money(item.estimate_rub)}<span class="price-label">Примерная расчётная цена. Актуальные предложения здесь не загружаются.</span></div><div class="actions"><button class="button" data-add="${id}">+ Добавить в сборку</button><button class="button secondary" data-compare="${id}" aria-pressed="${state.compare.includes(id)}">⇄ Сравнить</button></div><h3>Проверить цены у продавцов</h3><p class="micro">Ссылки открывают поиск модели. Сверьте точный артикул, наличие и цену на сайте магазина.</p><div class="store-links">${item.stores.map((store) => `<a class="button small ghost" href="${esc(store.url)}" target="_blank" rel="noopener noreferrer">${esc(store.name)} →</a>`).join("")}${item.manufacturer_url ? `<a class="button small ghost" href="${esc(item.manufacturer_url)}" target="_blank" rel="noopener noreferrer">Производитель →</a>` : ""}</div><section class="manual-prices"><h3>Сравнить найденные цены</h3><p class="micro">Откройте поиск у продавцов и введите найденные суммы. Это ваши записи, не автоматическая загрузка актуальных предложений. Доставка не учитывается.</p><div class="quotes-grid">${item.stores.map((store, index) => `<label class="field">${esc(store.name)}, ₽<input type="number" min="1" max="2000000" step="1" data-quote="${index}" value="${state.quotes[id]?.[index] || ""}" placeholder="Цена из магазина"></label>`).join("")}</div><p class="micro" id="best-quote"></p><button class="button small secondary" id="apply-quote">Применить лучшую цену к расчёту</button></section><p class="source-note">${esc(state.metadata.spec_notice)}</p>`,
+      )}</div><div class="product-price">${money(marketPrice(item))}<span class="price-label">${esc(offerNote(item))}</span></div><div class="actions"><button class="button" data-add="${id}">+ Добавить в сборку</button><button class="button secondary" data-compare="${id}" aria-pressed="${state.compare.includes(id)}">⇄ Сравнить</button></div><h3>Предложения магазинов</h3>${offerMarkup(item)}<h3>Найти другие предложения</h3><p class="micro">Ссылки открывают поиск модели. Сверьте точный артикул, наличие и цену на сайте магазина.</p><div class="store-links">${item.stores.map((store) => `<a class="button small ghost" href="${esc(store.url)}" target="_blank" rel="noopener noreferrer">${esc(store.name)} →</a>`).join("")}${item.manufacturer_url ? `<a class="button small ghost" href="${esc(item.manufacturer_url)}" target="_blank" rel="noopener noreferrer">Производитель →</a>` : ""}</div><section class="manual-prices"><h3>Сравнить найденные цены</h3><p class="micro">Откройте поиск у продавцов и введите найденные суммы. Это ваши записи, не автоматическая загрузка актуальных предложений. Доставка не учитывается.</p><div class="quotes-grid">${item.stores.map((store, index) => `<label class="field">${esc(store.name)}, ₽<input type="number" min="1" max="2000000" step="1" data-quote="${index}" value="${state.quotes[id]?.[index] || ""}" placeholder="Цена из магазина"></label>`).join("")}</div><p class="micro" id="best-quote"></p><button class="button small secondary" id="apply-quote">Применить лучшую цену к расчёту</button></section><p class="source-note">${esc(state.metadata.spec_notice)}</p>`,
   );
   bindProducts($("#modal-content"));
   bindQuotes(item);
@@ -418,7 +456,7 @@ function picker(category) {
       items
         .map(
           (item) =>
-            `<article class="modal-item"><h3>${esc(item.name)}</h3><p>${esc(brief(item))}</p><p>~${money(currentPrice(item))} · ${state.prices[item.id] ? "ваша цена" : "примерная цена"}</p><button class="button small secondary" data-add="${item.id}">Выбрать +</button></article>`,
+            `<article class="modal-item"><h3>${esc(item.name)}</h3><p>${esc(brief(item))}</p><p>${money(currentPrice(item))} · ${state.prices[item.id] ? "ваша цена" : esc(offerNote(item))}</p><button class="button small secondary" data-add="${item.id}">Выбрать +</button></article>`,
         )
         .join("") || '<p class="subtitle">Модель не найдена.</p>';
     bindProducts($("#picker-list"));
@@ -428,7 +466,7 @@ function picker(category) {
 }
 function componentRow(category) {
   const item = state.byId[state.parts[category]];
-  return `<article class="component-row ${item ? "" : "empty-row"}"><div class="component-icon" aria-hidden="true">${icons[category]}</div><div class="component-body"><div class="category-label">${esc(state.categories[category])}${category === "gpu" ? " · не нужна при встроенной графике" : ""}</div><h3>${item ? esc(item.name) : "Выберите компонент"}</h3>${item ? `<p class="spec-summary">${esc(brief(item))}</p>` : ""}</div>${item ? `<label class="component-price"><input type="number" min="1" max="2000000" step="1" value="${currentPrice(item)}" data-price="${item.id}" aria-label="Цена ${esc(item.name)}, рублей"><small>${state.prices[item.id] ? "Ваша цена, ₽" : "Примерная цена, ₽"}</small></label>` : ""}<div class="component-buttons"><button class="button ghost" data-pick="${category}">${item ? "Заменить" : "Добавить +"}</button>${item ? `<button class="icon-button" data-remove="${category}" aria-label="Убрать ${esc(state.categories[category])}">×</button>` : ""}</div></article>`;
+  return `<article class="component-row ${item ? "" : "empty-row"}"><div class="component-icon" aria-hidden="true">${icons[category]}</div><div class="component-body"><div class="category-label">${esc(state.categories[category])}${category === "gpu" ? " · не нужна при встроенной графике" : ""}</div><h3>${item ? esc(item.name) : "Выберите компонент"}</h3>${item ? `<p class="spec-summary">${esc(brief(item))}</p><p class="micro">${esc(offerNote(item))}</p>` : ""}</div>${item ? `<label class="component-price"><input type="number" min="1" max="2000000" step="1" value="${currentPrice(item) ?? ""}" placeholder="Введите цену" data-price="${item.id}" aria-label="Цена ${esc(item.name)}, рублей"><small>${state.prices[item.id] ? "Ваша цена, ₽" : "Цена магазина, ₽"}</small></label>` : ""}<div class="component-buttons"><button class="button ghost" data-pick="${category}">${item ? "Заменить" : "Добавить +"}</button>${item ? `<button class="icon-button" data-remove="${category}" aria-label="Убрать ${esc(state.categories[category])}">×</button>` : ""}</div></article>`;
 }
 function renderConfigurator() {
   $("#main").innerHTML =
@@ -445,10 +483,17 @@ function renderConfigurator() {
   );
   $$("[data-price]").forEach((input) =>
     input.addEventListener("change", () => {
+      if (input.value === "") {
+        delete state.prices[input.dataset.price];
+        persistDraft();
+        checkBuild();
+        input.nextElementSibling.textContent = "Цена магазина, ₽";
+        return;
+      }
       const n = Number(input.value);
       if (!Number.isInteger(n) || n < 1 || n > 2000000) {
         toast("Введите целую цену от 1 до 2 000 000 ₽.");
-        input.value = currentPrice(state.byId[input.dataset.price]);
+        input.value = currentPrice(state.byId[input.dataset.price]) ?? "";
         return;
       }
       state.prices[input.dataset.price] = n;
@@ -464,7 +509,9 @@ function renderConfigurator() {
     state.prices = {};
     persistDraft();
     renderConfigurator();
-    toast("Возвращены примерные цены каталога.");
+    toast(
+      "Возвращены проверенные цены магазинов. Для отсутствующих цен сумма не вычисляется.",
+    );
   });
   $("#clear-build").addEventListener("click", () =>
     confirmDialog(
@@ -503,12 +550,12 @@ async function checkBuild() {
 function renderSummary(e) {
   const c = e.compatibility;
   $("#config-summary").innerHTML =
-    `<h2>Твоя сборка</h2><span class="total-label">${Object.keys(e.components).length} из 8 категорий · сумма для расчёта</span><div class="total">${money(e.total_rub)}</div><span class="price-label">${Object.values(e.components).some((i) => i.user_price) ? "Есть введённые вами цены. Остальные — примерные." : "Все цены примерные, не актуальные предложения."}</span><div class="compatibility-status ${c.errors.length ? "error" : ""}">${c.errors.length ? "✕ Есть несовместимые компоненты" : c.complete ? "✓ Сборка прошла проверки" : "◷ Заверши сборку для полной проверки"}</div>${c.estimated_power_w ? `<p class="micro">Оценка потребления: ${c.estimated_power_w} Вт<br>БП с запасом: от ${c.recommended_psu_w} Вт</p>` : ""}<div class="check-list">${c.checks.map((check) => `<div class="check ${check.status}"><span>${check.status === "ok" ? "✓" : check.status === "error" ? "✕" : "◷"}</span><span>${esc(check.message)}</span></div>`).join("")}</div>${c.missing.length ? `<p class="micro">Осталось добавить: ${esc(c.missing.join(", "))}.</p>` : ""}${c.warnings.map((w) => `<p class="warning">⚠ ${esc(w)}</p>`).join("")}<div class="actions"><button class="button" id="summary-save">Сохранить сборку ↓</button><a class="button secondary" href="/smart" data-route>Доверить подбор алгоритму ✧</a></div>`;
+    `<h2>Твоя сборка</h2><span class="total-label">${Object.keys(e.components).length} из 8 категорий · сумма для расчёта</span><div class="total">${money(e.total_rub)}</div>${!e.pricing_complete ? `<div class="notice">Известная часть: ${money(e.known_total_rub)}. Нет цены у ${e.unpriced_ids.length} компонентов. Полная сумма не определена; укажите цены или выберите другие модели.</div>` : ""}<span class="price-label">${Object.values(e.components).some((i) => i.user_price) ? "Есть введённые вами цены. Остальные — из предложений магазинов." : "Сумма по свежим предложениям магазинов. Доставка и ОС не учтены."}</span><div class="compatibility-status ${c.errors.length ? "error" : ""}">${c.errors.length ? "✕ Есть несовместимые компоненты" : c.complete ? "✓ Сборка прошла проверки" : "◷ Заверши сборку для полной проверки"}</div>${c.estimated_power_w ? `<p class="micro">Оценка потребления: ${c.estimated_power_w} Вт<br>БП с запасом: от ${c.recommended_psu_w} Вт</p>` : ""}<div class="check-list">${c.checks.map((check) => `<div class="check ${check.status}"><span>${check.status === "ok" ? "✓" : check.status === "error" ? "✕" : "◷"}</span><span>${esc(check.message)}</span></div>`).join("")}</div>${c.missing.length ? `<p class="micro">Осталось добавить: ${esc(c.missing.join(", "))}.</p>` : ""}${c.warnings.map((w) => `<p class="warning">⚠ ${esc(w)}</p>`).join("")}<div class="actions"><button class="button" id="summary-save">Сохранить сборку ↓</button><a class="button secondary" href="/smart" data-route>Доверить подбор алгоритму ✧</a></div>`;
   $("#summary-save").addEventListener("click", saveDialog);
 }
 function renderSmart() {
   $("#main").innerHTML =
-    `<div class="page-enter">${pageHead("БЕСПЛАТНЫЙ АЛГОРИТМ", "Мощность в рамках бюджета.", "Перебираем совместимые комбинации и выбираем лучшую оценку для твоей задачи. Без платных AI API.")}${priceNotice()}<div class="smart-layout"><form class="smart-form" id="smart-form"><h2>Настрой подбор</h2><label class="field">Бюджет, ₽<input id="smart-budget" name="budget" type="number" min="15000" max="500000" step="1" value="80000" required><span>От 15 000 до 500 000 ₽</span></label><label class="field">Назначение<select name="purpose" id="smart-purpose"><option value="gaming">Игры</option><option value="work">Работа и творчество</option><option value="office">Офис и учёба</option></select></label><label class="field">Процессор<select name="cpu_brand"><option value="any">Без предпочтений</option><option value="AMD">AMD</option><option value="Intel">Intel</option></select></label><label class="field">Видеокарта<select name="gpu_brand"><option value="any">Без предпочтений</option><option value="NVIDIA">NVIDIA</option><option value="AMD">AMD Radeon</option></select></label><button class="button" type="submit">Подобрать мой ПК <span>✧</span></button><p class="micro">${Object.keys(state.prices).length ? "В расчёте используются также ваши цены из конфигуратора." : "Подбор использует примерные цены каталога. Свои цены можно задать в конфигураторе."}<br>Периферия, ОС и доставка не входят в бюджет. Для специфичного ПО проверьте системные требования.</p></form><section class="smart-result" id="smart-result">${state.result ? resultMarkup(state.result) : emptyMarkup("Твоя сборка появится здесь", "Выбери бюджет, задачу и бренды.<br>Мы позаботимся о совместимости.")}</section></div></div>`;
+    `<div class="page-enter">${pageHead("БЕСПЛАТНЫЙ АЛГОРИТМ", "Мощность в рамках бюджета.", "Перебираем совместимые комбинации и выбираем лучшую оценку для твоей задачи. Без платных AI API.")}${priceNotice()}<div class="smart-layout"><form class="smart-form" id="smart-form"><h2>Настрой подбор</h2><label class="field">Бюджет, ₽<input id="smart-budget" name="budget" type="number" min="15000" max="500000" step="1" value="160000" required><span>От 15 000 до 500 000 ₽</span></label><label class="field">Назначение<select name="purpose" id="smart-purpose"><option value="gaming">Игры</option><option value="work">Работа и творчество</option><option value="office">Офис и учёба</option></select></label><label class="field">Процессор<select name="cpu_brand"><option value="any">Без предпочтений</option><option value="AMD">AMD</option><option value="Intel">Intel</option></select></label><label class="field">Видеокарта<select name="gpu_brand"><option value="any">Без предпочтений</option><option value="NVIDIA">NVIDIA</option><option value="AMD">AMD Radeon</option></select></label><button class="button" type="submit">Подобрать мой ПК <span>✧</span></button><p class="micro">${Object.keys(state.prices).length ? "В расчёте используются также ваши цены из конфигуратора." : "Подбор использует только свежие цены доступных товаров. Модели без цены исключаются. Свои цены можно задать в конфигураторе."}<br>Периферия, ОС и доставка не входят в бюджет. Для специфичного ПО проверьте системные требования.</p></form><section class="smart-result" id="smart-result">${state.result ? resultMarkup(state.result) : emptyMarkup("Твоя сборка появится здесь", "Выбери бюджет, задачу и бренды.<br>Мы позаботимся о совместимости.")}</section></div></div>`;
   $("#smart-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -541,16 +588,16 @@ function renderSmart() {
   if (state.result) bindResult();
 }
 function resultMarkup(result) {
-  return `<div class="result-head"><div><div class="eyebrow">ПОДБОР ЗАВЕРШЁН</div><h2>Можно собирать.</h2><p>Все компоненты прошли проверки.<br>Остаток бюджета: ${money(result.remaining_rub)}</p></div><b>~${money(result.total_rub)}</b></div><div>${Object.entries(
+  return `<div class="result-head"><div><div class="eyebrow">ПОДБОР ЗАВЕРШЁН</div><h2>Можно собирать.</h2><p>Все компоненты прошли проверки.<br>Остаток бюджета: ${money(result.remaining_rub)}</p></div><b>${money(result.total_rub)}</b></div><div>${Object.entries(
     result.components,
   )
     .map(
       ([category, item]) =>
-        `<div class="result-row"><div><span>${esc(state.categories[category])}</span><strong>${esc(item.name)}</strong></div><b>${item.user_price ? "" : "~"}${money(item.calculation_rub)}</b></div>`,
+        `<div class="result-row"><div><span>${esc(state.categories[category])}</span><strong>${esc(item.name)}</strong><span>${item.user_price ? "Ваша цена" : esc(offerNote(item))}</span></div><b>${money(item.calculation_rub)}</b></div>`,
     )
     .join(
       "",
-    )}</div><div class="actions"><button class="button" id="use-result">Открыть в конфигураторе →</button><button class="button secondary" id="save-result">Сохранить ↓</button></div><div class="explanation"><h3>Почему эта сборка?</h3><ul>${result.explanation.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><p>Оценка для задачи: ${result.score}. Расчёт БП: от ${result.compatibility.recommended_psu_w} Вт.</p>${result.compatibility.warnings.map((w) => `<p class="warning">⚠ ${esc(w)}</p>`).join("")}<p class="micro">Цены для расчёта: ${Object.values(result.components).some((i) => i.user_price) ? "смешанные (ваши и примерные)" : "примерные"}. Проверяйте точные цены и наличие у продавцов.</p></div>`;
+    )}</div><div class="actions"><button class="button" id="use-result">Открыть в конфигураторе →</button><button class="button secondary" id="save-result">Сохранить ↓</button></div><div class="explanation"><h3>Почему эта сборка?</h3><ul>${result.explanation.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><p>Оценка для задачи: ${result.score}. Расчёт БП: от ${result.compatibility.recommended_psu_w} Вт.</p>${result.compatibility.warnings.map((w) => `<p class="warning">⚠ ${esc(w)}</p>`).join("")}<p class="micro">Цены для расчёта: ${Object.values(result.components).some((i) => i.user_price) ? "ваши и предложения магазинов" : "предложения магазинов"}. Проверяйте точные цены и наличие у продавцов.</p></div>`;
 }
 function applyResult() {
   state.parts = Object.fromEntries(
@@ -592,7 +639,7 @@ async function renderCompare() {
     if (state.route !== "/compare" || snapshot !== state.compare.join(","))
       return;
     $("#compare-result").innerHTML =
-      `<div class="compare-wrap"><table><thead><tr><th>Характеристика</th>${data.items.map((i) => `<th><div class="compare-name"><button class="icon-button" data-compare="${i.id}" aria-label="Удалить ${esc(i.name)}">×</button>${esc(i.name)}</div><span class="price-label">~${money(i.estimate_rub)} · примерная цена</span><button class="button small secondary" data-detail="${i.id}">Магазины и детали →</button></th>`).join("")}</tr></thead><tbody>${data.rows
+      `<div class="compare-wrap"><table><thead><tr><th>Характеристика</th>${data.items.map((i) => `<th><div class="compare-name"><button class="icon-button" data-compare="${i.id}" aria-label="Удалить ${esc(i.name)}">×</button>${esc(i.name)}</div><span class="price-label">${money(marketPrice(i))} · ${esc(offerNote(i))}</span><button class="button small secondary" data-detail="${i.id}">Магазины и детали →</button></th>`).join("")}</tr></thead><tbody>${data.rows
         .map((row) => {
           const different =
             new Set(row.values.map((v) => JSON.stringify(v))).size > 1;
@@ -724,12 +771,14 @@ function confirmDialog(title, description, action) {
   $("#cancel-action").addEventListener("click", closeModal);
 }
 function recordTotal(record) {
-  return Object.values(record.components).reduce(
-    (sum, id) =>
-      sum + (record.price_overrides[id] ?? state.byId[id].estimate_rub),
-    0,
+  const values = Object.values(record.components).map(
+    (id) => record.price_overrides[id] ?? marketPrice(state.byId[id]),
   );
+  return values.some((value) => value === null || value === undefined)
+    ? null
+    : values.reduce((sum, value) => sum + value, 0);
 }
+
 function renderSaved() {
   $("#main").innerHTML =
     `<div class="page-enter">${pageHead("ЛИЧНАЯ КОЛЛЕКЦИЯ", "Твои сборки. Твои планы.", "Сборки хранятся в localStorage этого браузера. Очистка данных браузера удалит их — сохраняй резервную копию JSON.")}<div class="toolbar"><a class="button small" href="/configurator" data-route>+ Новая сборка</a><button class="button small secondary" id="import-build">Импорт JSON ↑</button><input type="file" accept=".json,application/json" id="import-file" hidden></div><div class="saved-grid">${state.saved
@@ -741,7 +790,7 @@ function renderSaved() {
             .map((id) => esc(state.byId[id].name))
             .join(
               "<br>",
-            )}</div><div class="product-price">~${money(recordTotal(record))}<span class="price-label">По сохранённым ценам и расчётным ценам каталога</span></div><div class="actions"><button class="button secondary" data-load="${record.id}">Открыть →</button><button class="button ghost" data-export="${record.id}">Экспорт ↓</button><button class="button danger" data-delete="${record.id}">Удалить</button></div></article>`,
+            )}</div><div class="product-price">${money(recordTotal(record))}<span class="price-label">Ваши сохранённые цены и свежие предложения магазинов; при отсутствии цены сумма не определена</span></div><div class="actions"><button class="button secondary" data-load="${record.id}">Открыть →</button><button class="button ghost" data-export="${record.id}">Экспорт ↓</button><button class="button danger" data-delete="${record.id}">Удалить</button></div></article>`,
       )
       .join(
         "",
@@ -824,7 +873,7 @@ async function importFile(e) {
 }
 function renderAbout() {
   $("#main").innerHTML =
-    `<div class="page-enter">${pageHead("О ПРОЕКТЕ", "Больше ясности. Больше VOLTRIX.", "Российский проект для осознанной сборки ПК. Бесплатная первая версия с прозрачными правилами.")}<div class="about-grid"><article class="about-card"><div class="eyebrow">НАША ИДЕЯ</div><h2>Хороший ПК начинается с правильных вопросов.</h2><p>Сколько ты готов потратить? Что будешь делать? Какие детали работают вместе? VOLTRIX помогает пройти этот путь без регистрации и платных сервисов.</p><h3>Как работает умный подбор</h3><p>Алгоритм перебирает совместимые связки процессора, платы, памяти, видеокарты и SSD. Для каждой выбирает самые недорогие подходящие корпус, кулер и БП. Из сборок в пределах бюджета выбирает наибольшую оценку для задачи, а при равенстве — меньшую цену.</p><p>Игровая оценка: 30% CPU, 65% GPU, бонусы памяти и SSD, штраф за дисбаланс. Рабочая: 65% CPU, 20% GPU и повышенные бонусы памяти и SSD. Офисная ограничивает пользу избыточной мощности. Баллы относительные, назначены в каталоге и не означают FPS. Поиск оптимален в рамках этой модели и каталога.</p><h3>Что проверяется</h3><p>Сокет и поддержка CPU, тип и объём памяти, размеры платы, видеокарты и кулера, крепление и тепловой запас охлаждения, мощность и разъёмы БП, интерфейс SSD и наличие графики.</p><p>Мощность БП: потребление CPU + GPU + 60 Вт для остального, затем 35% запаса и округление вверх до 50 Вт. Это консервативная оценка, не измерение энергопотребления.</p></article><article class="about-card"><div class="eyebrow">ЧЕСТНО О ПЕРВОЙ ВЕРСИИ</div><h2>Данные, которым нужен контекст.</h2><h3>Цены и магазины</h3><p>В каталоге реальные модели и примерные расчётные цены. Актуальные цены и наличие автоматически не загружаются. Ссылки в карточках открывают поиск в DNS, Ситилинке и Яндекс Маркете. Сравни предложения на их сайтах, введи цены в карточке модели и примени минимальную к расчёту. Также цену можно задать в конфигураторе.</p><h3>Совместимость</h3><p>${esc(state.metadata.spec_notice)}</p><h3>Хранение сборок</h3><p>Сборки, черновик и введённые цены сохраняются в localStorage браузера. Нет аккаунтов и синхронизации. Экспортируй JSON для резервной копии или переноса. В Telegram пользовательские сборки не хранятся.</p><h3>Telegram и доступность</h3><p>Бот использует тот же Python-модуль подбора. Команда: <code>/build 80000 gaming AMD NVIDIA</code>. Адрес конкретного бота задаётся владельцем проекта при развёртывании.</p><p>На бесплатном Render сервис может засыпать. Первый запрос иногда ждёт около минуты; Telegram может повторить webhook. Подбор бесплатный, внешний AI не используется.</p><div class="actions"><a class="button small" href="/smart" data-route>Попробовать подбор →</a><a class="button small ghost" href="/docs" target="_blank" rel="noopener">Документация API →</a></div></article></div></div>`;
+    `<div class="page-enter">${pageHead("О ПРОЕКТЕ", "Больше ясности. Больше VOLTRIX.", "Российский проект для осознанной сборки ПК. Бесплатная первая версия с прозрачными правилами.")}<div class="about-grid"><article class="about-card"><div class="eyebrow">НАША ИДЕЯ</div><h2>Хороший ПК начинается с правильных вопросов.</h2><p>Сколько ты готов потратить? Что будешь делать? Какие детали работают вместе? VOLTRIX помогает пройти этот путь без регистрации и платных сервисов.</p><h3>Как работает умный подбор</h3><p>Алгоритм перебирает совместимые связки процессора, платы, памяти, видеокарты и SSD. Для каждой выбирает самые недорогие подходящие корпус, кулер и БП. Из сборок в пределах бюджета выбирает наибольшую оценку для задачи, а при равенстве — меньшую цену.</p><p>Игровая оценка: 30% CPU, 65% GPU, бонусы памяти и SSD, штраф за дисбаланс. Рабочая: 65% CPU, 20% GPU и повышенные бонусы памяти и SSD. Офисная ограничивает пользу избыточной мощности. Баллы относительные, назначены в каталоге и не означают FPS. Поиск оптимален в рамках этой модели и каталога.</p><h3>Что проверяется</h3><p>Сокет и поддержка CPU, тип и объём памяти, размеры платы, видеокарты и кулера, крепление и тепловой запас охлаждения, мощность и разъёмы БП, интерфейс SSD и наличие графики.</p><p>Мощность БП: потребление CPU + GPU + 60 Вт для остального, затем 35% запаса и округление вверх до 50 Вт. Это консервативная оценка, не измерение энергопотребления.</p></article><article class="about-card"><div class="eyebrow">ЧЕСТНО О ПЕРВОЙ ВЕРСИИ</div><h2>Данные, которым нужен контекст.</h2><h3>Цены и магазины</h3><p>В каталоге реальные модели и предложения KNS и Регард с прямыми ссылками, наличием и временем проверки. Сервер пробует обновлять цены при запуске и каждый час, пока сервис работает. Снимки страниц явно помечены; через 24 часа неподтверждённые данные исключаются из расчёта. При недоступности магазина цены не выдумываются. Ссылки в карточках открывают поиск в DNS, Ситилинке и Яндекс Маркете. Сравни предложения на их сайтах, введи цены в карточке модели и примени минимальную к расчёту. Также цену можно задать в конфигураторе.</p><h3>Совместимость</h3><p>${esc(state.metadata.spec_notice)}</p><h3>Хранение сборок</h3><p>Сборки, черновик и введённые цены сохраняются в localStorage браузера. Нет аккаунтов и синхронизации. Экспортируй JSON для резервной копии или переноса. В Telegram пользовательские сборки не хранятся.</p><h3>Telegram и доступность</h3><p>Бот использует тот же Python-модуль подбора. Команда: <code>/build 80000 gaming AMD NVIDIA</code>. Адрес конкретного бота задаётся владельцем проекта при развёртывании.</p><p>На бесплатном Render сервис может засыпать. Первый запрос иногда ждёт около минуты; Telegram может повторить webhook. Подбор бесплатный, внешний AI не используется.</p><div class="actions"><a class="button small" href="/smart" data-route>Попробовать подбор →</a><a class="button small ghost" href="/docs" target="_blank" rel="noopener">Документация API →</a></div></article></div></div>`;
 }
 const routes = {
   "/": renderHome,
@@ -872,7 +921,9 @@ function loadSharedParts() {
     state.parts = parts;
     state.prices = {};
     persistDraft();
-    toast("Состав загружен по ссылке. Цены — примерные.");
+    toast(
+      "Состав загружен по ссылке. Цены загружены из доступных предложений магазинов.",
+    );
   }
 }
 async function init() {
@@ -882,6 +933,7 @@ async function init() {
     state.byId = Object.fromEntries(data.items.map((i) => [i.id, i]));
     state.categories = data.categories;
     state.metadata = data.metadata;
+    state.priceStatus = data.price_status;
     const quotes = storageRead("voltrix.quotes.v1", {});
     if (quotes && typeof quotes === "object" && !Array.isArray(quotes)) {
       for (const [id, values] of Object.entries(quotes)) {
@@ -984,3 +1036,22 @@ window.addEventListener("popstate", () => {
   }
 });
 init();
+
+setInterval(async () => {
+  if (
+    !state.items.length ||
+    document.visibilityState !== "visible" ||
+    $("#modal").open
+  )
+    return;
+  try {
+    const data = await api("/api/catalog");
+    state.items = data.items;
+    state.byId = Object.fromEntries(data.items.map((i) => [i.id, i]));
+    state.priceStatus = data.price_status;
+    if (state.route === "/configurator") checkBuild();
+    else if (state.route === "/catalog") renderCatalogResults();
+  } catch {
+    /* Keep the previous source timestamp; never substitute a guessed price. */
+  }
+}, 60000);

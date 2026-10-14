@@ -1,0 +1,420 @@
+{
+  "sources": [
+    {
+      "item_id": "r5600",
+      "store": "Регард",
+      "url": "https://www.regard.ru/product/418665/processor-amd-ryzen-5-5600-oem",
+      "match_tokens": ["AMD", "Ryzen 5 5600 OEM"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 11610,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "r5600g",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/processor-amd-ryzen-5-5600g-oem/",
+      "match_tokens": ["AMD", "Ryzen 5 5600G OEM"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "r7600",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/processor-amd-ryzen-5-7600-oem/",
+      "match_tokens": ["AMD", "Ryzen 5 7600 OEM"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 19220,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "r7700",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/processor-amd-ryzen-7-7700-oem/",
+      "match_tokens": ["AMD", "Ryzen 7 7700 OEM"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 19094,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "i12100",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/processor-intel-core-i3-12100-oem/",
+      "match_tokens": ["Intel", "12100 OEM"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 12350,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "i12400f",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/processor-intel-core-i5-12400f-oem/",
+      "match_tokens": ["Intel", "12400F OEM"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 13222,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "i13400f",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/processor-intel-core-i5-13400f-oem/",
+      "match_tokens": ["Intel", "13400F OEM"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 15806,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "b550",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/materinskaya-plata-msi-b550m-pro-vdh-wifi/",
+      "match_tokens": ["MSI", "B550M Pro-VDH WiFi"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 11591,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "b650",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/materinskaya-plata-msi-pro-b650m-a-wifi/",
+      "match_tokens": ["MSI", "B650M-A WiFi"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "h610",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/materinskaya-plata-asus-prime-h610m-k-d4/",
+      "match_tokens": ["ASUS", "H610M-K D4"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 8642,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "b760d4",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/materinskaya-plata-msi-pro-b760m-a-wifi-ddr4/",
+      "match_tokens": ["MSI", "B760M-A WiFi DDR4"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 13404,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ddr4-16",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/operativnaya-pamyat-kingston-fury-beast-black-kf432c16bbk2-16/",
+      "match_tokens": ["Kingston", "KF432C16BBK2/16"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 24321,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ddr4-32",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/operativnaya-pamyat-kingston-fury-beast-black-kf432c16bbk2-32/",
+      "match_tokens": ["Kingston", "KF432C16BBK2/32"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 58420,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ddr5-32",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/operativnaya-pamyat-kingston-fury-beast-black-kf560c36bbek2-32/",
+      "match_tokens": ["Kingston", "KF560C36BBEK2-32"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "rtx4060",
+      "store": "Регард",
+      "url": "https://www.regard.ru/product/9717/videokarta-nvidia-geforce-rtx-4060-msi-8gb-rtx-4060-ventus-2x-black-8g-oc",
+      "match_tokens": ["MSI", "RTX 4060 VENTUS 2X BLACK 8G OC"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "sn580-1",
+      "store": "Регард",
+      "url": "https://www.regard.ru/product/74812/nakopitel-ssd-1tb-wd-blue-sn580-wds100t3b0e",
+      "match_tokens": ["WD", "WDS100T3B0E"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "pk550",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/blok-pitaniya-deepcool-550w-pk550d/",
+      "match_tokens": ["Deepcool", "PK550D"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "pk650",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/blok-pitaniya-deepcool-650w-pk650d/",
+      "match_tokens": ["Deepcool", "PK650D"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "pm750",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/blok-pitaniya-deepcool-750w-pm750d/",
+      "match_tokens": ["Deepcool", "PM750D"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "matrexx40",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/korpus-deepcool-matrexx-40/",
+      "match_tokens": ["Deepcool", "Matrexx 40"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ag200",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/kuler-deepcool-ag200/",
+      "match_tokens": ["Deepcool", "AG200"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 927,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ag400",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/kuler-deepcool-ag400/",
+      "match_tokens": ["Deepcool", "AG400"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 1602,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ak620",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/kuler-deepcool-ak620/",
+      "match_tokens": ["Deepcool", "AK620"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 5817,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "rtx5060max",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/videokarta-msi-nvidia-geforce-rtx-5060-8g-shadow-2x-oc-max/",
+      "match_tokens": ["MSI", "RTX 5060 8G Shadow 2X OC MAX"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 54626,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "nv3-1",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/ssd-disk-kingston-nv3-1tb-snv3s-1000g/",
+      "match_tokens": ["Kingston", "SNV3S/1000G"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 16734,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "pn750",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/blok-pitaniya-deepcool-750w-pn750d/",
+      "match_tokens": ["Deepcool", "PN750D"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 8472,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "cc560v2",
+      "store": "Регард",
+      "url": "https://www.regard.ru/product/654818/korpus-deepcool-cc-560-v2-black",
+      "match_tokens": ["DeepCool", "CC 560 V2 Black"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 6240,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ddr4-32",
+      "store": "Регард",
+      "url": "https://www.regard.ru/product/399310/operativnaia-pamiat-32gb-ddr4-3200mhz-kingston-fury-beast-black-kf432c16bbk2-32-2x16gb-kit",
+      "match_tokens": ["Kingston", "KF432C16BBK2/32"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 36220,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ddr5-16",
+      "store": "Регард",
+      "url": "https://www.regard.ru/product/447100/operativnaia-pamiat-16gb-ddr5-5200mhz-kingston-fury-beast-kf552c40bbk2-16-2x8gb-kit",
+      "match_tokens": ["Kingston", "KF552C40BBK2-16"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 37920,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "ddr5-new32",
+      "store": "Регард",
+      "url": "https://www.regard.ru/product/707476/operativnaia-pamiat-32gb-ddr5-6000mhz-kingston-fury-beast-kf560c36bbe2k2-32-2x16gb-kit",
+      "match_tokens": ["Kingston", "KF560C36BBE2K2-32"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": 66990,
+        "available": true,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "sn770-2",
+      "store": "Регард",
+      "url": "https://www.regard.ru/product/441927/nakopitel-ssd-2tb-wd-black-sn770-wds200t3x0e",
+      "match_tokens": ["WD", "WDS200T3X0E"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    },
+    {
+      "item_id": "rx7600",
+      "store": "KNS",
+      "url": "https://www.kns.ru/product/videokarta-sapphire-amd-radeon-rx-7600-pulse-8gb-11324-01-20g/",
+      "match_tokens": ["Sapphire", "11324-01-20G"],
+      "region": "Москва",
+      "snapshot": {
+        "price_rub": null,
+        "available": false,
+        "checked_at": "2026-10-14T02:20:02.391165+00:00",
+        "method": "page_snapshot"
+      }
+    }
+  ]
+}
