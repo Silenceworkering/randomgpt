@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -80,13 +81,24 @@ class Notifier:
                 await session.commit()
 
 
-async def scheduler_lock(engine):
-    """Dedicated connection holds session advisory lock for process lifetime."""
+async def scheduler_lock(engine, wait_seconds: float = 0):
+    """Keep the new Render worker idle until the previous worker releases leadership."""
     connection = await engine.connect()
     connection = await connection.execution_options(isolation_level="AUTOCOMMIT")
     if engine.dialect.name != "postgresql":
         return connection
-    if not await connection.scalar(text("SELECT pg_try_advisory_lock(:id)"), {"id": LOCK_ID}):
+    expires = asyncio.get_running_loop().time() + wait_seconds
+    announced = False
+    try:
+        while not await connection.scalar(text("SELECT pg_try_advisory_lock(:id)"), {"id": LOCK_ID}):
+            remaining = expires - asyncio.get_running_loop().time()
+            if remaining <= 0:
+                raise RuntimeError("Другой экземпляр Дедлайныча уже работает")
+            if not announced:
+                log.info("Ожидание завершения предыдущего экземпляра; Telegram polling ещё не запущен")
+                announced = True
+            await asyncio.sleep(min(1, remaining))
+    except BaseException:
         await connection.close()
-        raise RuntimeError("Другой экземпляр Дедлайныча уже работает")
+        raise
     return connection

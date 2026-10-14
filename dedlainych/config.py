@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     ai_model: str = "qwen2.5:7b"
     tz: str = "Asia/Yakutsk"
     group_code: str = "6104-ОБ"
+    instance_lock_wait_seconds: int = Field(default=0, ge=0, le=600)
     max_file_bytes: int = Field(default=10 * 1024 * 1024, ge=1024, le=20 * 1024 * 1024)
 
     @field_validator("tz")

@@ -26,7 +26,7 @@ async def main():
     if not config.bot_token.get_secret_value():
         raise RuntimeError("Укажи BOT_TOKEN в окружении; токен не нужно добавлять в GitHub")
     engine, sessions = make_database()
-    lock = await scheduler_lock(engine)
+    lock = await scheduler_lock(engine, wait_seconds=config.instance_lock_wait_seconds)
     bot = Bot(config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     scheduler = AsyncIOScheduler(timezone="UTC")
     dispatcher = Dispatcher()

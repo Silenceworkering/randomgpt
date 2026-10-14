@@ -247,3 +247,43 @@ async def test_single_scheduler_postgres_lock(database):
 
         await first.execute(text("SELECT pg_advisory_unlock_all()"))
         await first.close()
+
+
+@pytest.mark.parametrize("scheme", ["postgres", "postgresql", "postgresql+asyncpg"])
+def test_render_database_url(scheme):
+    from dedlainych.db.session import async_database_url
+
+    url = async_database_url(f"{scheme}://student:p%40ss%3Aword@db.internal:5432/dedlainych")
+    assert url.drivername == "postgresql+asyncpg"
+    assert url.password == "p@ss:word"
+    assert url.host == "db.internal"
+    assert "p@ss:word" not in str(url)
+
+
+async def test_render_worker_waits_for_previous_instance(database):
+    import asyncio
+    from sqlalchemy import text
+    from dedlainych.services.notifications import scheduler_lock
+
+    async with database() as session:
+        engine = session.bind
+    if engine.dialect.name != "postgresql":
+        pytest.skip("PostgreSQL handover integration test")
+    first = await scheduler_lock(engine)
+    successor = asyncio.create_task(scheduler_lock(engine, wait_seconds=5))
+    second = None
+    try:
+        await asyncio.sleep(0.1)
+        assert not successor.done()
+        await first.execute(text("SELECT pg_advisory_unlock_all()"))
+        second = await asyncio.wait_for(successor, timeout=5)
+        with pytest.raises(RuntimeError):
+            await scheduler_lock(engine)
+    finally:
+        if not successor.done():
+            successor.cancel()
+            await asyncio.gather(successor, return_exceptions=True)
+        if second:
+            await second.execute(text("SELECT pg_advisory_unlock_all()"))
+            await second.close()
+        await first.close()

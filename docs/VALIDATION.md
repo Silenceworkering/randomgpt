@@ -5,8 +5,8 @@
 
 | Проверка | Результат |
 |---|---|
-| pytest на настоящей PostgreSQL | 36 passed |
-| pytest на SQLite in-memory | 35 passed, 1 skipped (только PostgreSQL advisory lock) |
+| pytest на настоящей PostgreSQL | 40 passed (после добавления Render) |
+| pytest на SQLite in-memory | 38 passed, 2 skipped (PostgreSQL-блокировка и передача между worker) |
 | Ruff check и format --check | Пройдены |
 | compileall | Пройден |
 | pip check | No broken requirements found |
@@ -61,3 +61,12 @@
 сервисов, часть расширенной обработки не реализована. Ошибка создания нового Dedlainych-AI выше
 относится к первоначальному запуску. Для поставки выбран существующий Silenceworkering/randomgpt;
 прежнее содержимое сохранено на GitHub в backup/before-dedlainych-2026-10-14.
+
+## Подготовка Render
+
+Добавлены render.yaml и docs/RENDER.md; конфигурация YAML разобрана, сверены worker, база,
+ссылки fromDatabase и запросы секретов. Миграции проверены на отдельной PostgreSQL с обычным
+postgresql:// URL, который выдаёт Render. Новые тесты проверяют сохранение специальных символов
+пароля и передачу блокировки между старой и новой версией worker без одновременного лидерства.
+Полная авторизованная проверка Blueprint API и живой деплой Render не выполнялись: аккаунт и
+BOT_TOKEN не подключены, платные ресурсы не создавались.
