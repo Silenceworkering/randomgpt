@@ -103,7 +103,7 @@ async def test_tomorrow_summary_selects_weekly_subjects(database):
         analyzer = Analyzer(Settings(_env_file=None))
         tasks = []
         for mid, text in enumerate(
-            ["По питону решить №6", "По истории прочитать главу 3", "По культурологии сделать таблицу"],
+            ["По питону решить №6", "История России: прочитать главу 3", "По культурологии сделать таблицу"],
             start=20,
         ):
             tasks.extend(await ingest(session, analyzer, -100123, mid, text, [], date(2026, 10, 14)))

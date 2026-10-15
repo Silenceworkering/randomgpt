@@ -8,7 +8,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 from dedlainych.db.models import NotificationHistory, UserSettings
-from dedlainych.db.repositories import completed_ids, visible_homework
+from dedlainych.db.repositories import completed_ids, visible_homework, purge_context
 from dedlainych.services.homework import summary
 
 from dedlainych.telegram.render import limit_html
@@ -32,6 +32,9 @@ class Notifier:
 
     async def tick(self, now: datetime | None = None):
         now = now or datetime.now(timezone.utc)
+        async with self.sessions() as session:
+            await purge_context(session)
+            await session.commit()
         async with self.sessions() as session:
             users = list(
                 (

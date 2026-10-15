@@ -109,6 +109,8 @@ class Source(Base):
     text: Mapped[str] = mapped_column(Text)
     link: Mapped[str | None] = mapped_column(String(500))
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    version_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    content_hash: Mapped[str] = mapped_column(String(64), default="", server_default="")
 
 
 class Homework(Base):
@@ -129,6 +131,11 @@ class Homework(Base):
     subgroup: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    changes: Mapped[dict] = mapped_column(JSON, default=dict, server_default="{}")
+    operation: Mapped[str] = mapped_column(String(10), default="create", server_default="create")
+    target_id: Mapped[int | None] = mapped_column(ForeignKey("homework.id"))
+    target_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    review_reason: Mapped[str] = mapped_column(String(500), default="", server_default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -182,3 +189,19 @@ class TelegramInbox(Base):
     available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ChatContext(Base):
+    __tablename__ = "chat_context"
+    chat_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    message_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    text: Mapped[str] = mapped_column(String(2000))
+    version_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    content_hash: Mapped[str] = mapped_column(String(64))
+
+
+class AIUsage(Base):
+    __tablename__ = "ai_daily_usage"
+    day: Mapped[date] = mapped_column(Date, primary_key=True)
+    calls: Mapped[int] = mapped_column(Integer)

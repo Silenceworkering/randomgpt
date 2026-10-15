@@ -17,7 +17,11 @@ jobs:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       ADMIN_IDS: ${{ secrets.ADMIN_IDS || '[]' }}
-      AI_PROVIDER: rules
+      AI_PROVIDER: ${{ vars.AI_PROVIDER || 'rules' }}
+      AI_EXTERNAL_ENABLED: ${{ vars.AI_EXTERNAL_ENABLED || 'false' }}
+      AI_API_KEY: ${{ secrets.AI_API_KEY }}
+      AI_GROQ_MODEL: ${{ vars.AI_GROQ_MODEL || 'openai/gpt-oss-20b' }}
+      AI_DAILY_REQUEST_LIMIT: ${{ vars.AI_DAILY_REQUEST_LIMIT || '100' }}
       RUN_MODE: webhook
     steps:
       - uses: actions/checkout@v4
