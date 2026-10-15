@@ -1,4 +1,5 @@
 from functools import lru_cache
+from hashlib import sha256
 from typing import Literal
 import re
 from zoneinfo import ZoneInfo
@@ -8,7 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", hide_input_in_errors=True)
     run_mode: Literal["polling", "webhook"] = "polling"
     webhook_secret: SecretStr = SecretStr("")
     webhook_base_url: str = ""
@@ -29,8 +30,13 @@ class Settings(BaseSettings):
     @classmethod
     def webhook_secret_valid(cls, value: SecretStr) -> SecretStr:
         plain = value.get_secret_value()
-        if plain and not re.fullmatch(r"[A-Za-z0-9_-]{16,256}", plain):
-            raise ValueError("WEBHOOK_SECRET: от 16 до 256 букв, цифр, _ или -")
+        if plain and not 16 <= len(plain) <= 256:
+            raise ValueError("WEBHOOK_SECRET: случайная строка длиной от 16 до 256 символов")
+        if plain and not re.fullmatch(r"[A-Za-z0-9_-]+", plain):
+            # Render generateValue returns base64 containing +, / and =.
+            # Derive a stable Telegram-safe secret and use it both when registering
+            # the webhook and when validating incoming headers. Never log the input.
+            return SecretStr(sha256(plain.encode()).hexdigest())
         return value
 
     @field_validator("tz")

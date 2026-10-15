@@ -228,3 +228,40 @@ async def test_queued_homework_uses_message_date_not_wakeup_date(database):
         source = await session.scalar(select(Source))
         assert task.due.isoformat() == "2026-10-15"
         assert source.received_at.replace(tzinfo=timezone.utc) == sent
+
+
+async def test_render_generated_base64_secret_works_for_webhook(database):
+    from hashlib import sha256
+
+    raw = "generated/base64+secret-with-padding=="
+    config = Settings(_env_file=None, run_mode="webhook", webhook_secret=raw)
+    expected = sha256(raw.encode()).hexdigest()
+    assert config.webhook_secret.get_secret_value() == expected
+    dispatcher = type("Dispatcher", (), {"feed_update": AsyncMock()})()
+    app = build_app(config, database, None, dispatcher, manage_lifecycle=False)
+    async with TestClient(TestServer(app)) as client:
+        response = await client.post(
+            "/telegram/webhook",
+            json={"update_id": 960},
+            headers={"X-Telegram-Bot-Api-Secret-Token": expected},
+        )
+        assert response.status == 200
+        response = await client.post(
+            "/telegram/webhook", json={"update_id": 961}, headers={"X-Telegram-Bot-Api-Secret-Token": raw}
+        )
+        assert response.status == 403
+
+
+def test_settings_validation_does_not_print_secret_input():
+    from pydantic import ValidationError
+
+    raw = "private-secret-" * 30
+    with pytest.raises(ValidationError) as failure:
+        Settings(_env_file=None, webhook_secret=raw)
+    assert raw not in str(failure.value)
+    assert "input_value" not in str(failure.value)
+
+
+def test_valid_existing_webhook_secret_is_preserved():
+    raw = "existing_safe_secret_1234"
+    assert Settings(_env_file=None, webhook_secret=raw).webhook_secret.get_secret_value() == raw

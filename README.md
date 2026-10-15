@@ -347,7 +347,7 @@ TEST_DATABASE_URL=postgresql+asyncpg://postgres:testing@localhost:55432/dedlainy
 python -m build --no-isolation
 ```
 
-Без TEST_DATABASE_URL используется SQLite in-memory. PostgreSQL проверяется отдельно и в CI.
+Без TEST_DATABASE_URL используется временная SQLite в каталоге теста. PostgreSQL проверяется отдельно и в CI.
 Тесты Telegram используют подменённый транспорт, чтобы не писать людям и не требовать реального токена.
 OCR unit-тест проверяет вызов Tesseract с подменой; реальный OCR проверяется отдельно в контейнере.
 Отчёт о фактических запусках — `docs/VALIDATION.md`.
