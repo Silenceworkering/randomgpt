@@ -62,6 +62,15 @@ class Schedule(Base):
     label: Mapped[str] = mapped_column(String(200), default="Ручной импорт")
 
 
+class WeeklyPlan(Base):
+    __tablename__ = "weekly_plans"
+    __table_args__ = (CheckConstraint("anchor_week IN (1, 2)", name="ck_weekly_anchor"),)
+    group_code: Mapped[str] = mapped_column(String(80), primary_key=True)
+    anchor_monday: Mapped[date] = mapped_column(Date)
+    anchor_week: Mapped[int] = mapped_column(Integer)
+    lessons: Mapped[list] = mapped_column(JSON)
+
+
 class Lesson(Base):
     __tablename__ = "schedule_lessons"
     __table_args__ = (

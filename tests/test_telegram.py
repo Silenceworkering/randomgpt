@@ -47,7 +47,6 @@ def test_menu_actions():
     assert {
         "now",
         "tomorrow",
-        "schedule",
         "archive:0",
         "progress",
         "notifications",

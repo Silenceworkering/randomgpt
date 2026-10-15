@@ -44,9 +44,12 @@ async def summary(session, user_id: int, start: date, nearest: bool = True):
     ]
     if day != start:
         lines.append(f"😴 На {start:%d.%m} пар не найдено. Ближайший учебный день — {day:%d.%m}.")
+    shown_subjects = set()
     for lesson in lessons[:12]:
+        if lesson.subject_id in shown_subjects:
+            continue
+        shown_subjects.add(lesson.subject_id)
         lines.append(f"📚 <b>{lesson.start:%H:%M} — {escape(subjects.get(lesson.subject_id, 'Предмет'))}</b>")
-        lines.append(f"🚪 {escape(lesson.room)} · {escape(lesson.teacher)}")
         if not any(h.subject_id == lesson.subject_id for h in tasks):
             lines.append("😎 По этому предмету домашка пока не найдена!")
     for h in tasks[:10]:

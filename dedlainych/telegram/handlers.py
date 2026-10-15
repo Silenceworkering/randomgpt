@@ -40,6 +40,7 @@ from dedlainych.services.admin import is_admin
 from dedlainych.services.ai import Analyzer
 from dedlainych.services.attachments import ALLOWED, extract
 from dedlainych.services.homework import LINE, summary
+from dedlainych.services.group_6104 import configure_week
 from dedlainych.services.schedule import import_schedule, lessons_on
 from dedlainych.telegram.keyboards import back, keyboard, menu, task_buttons
 
@@ -86,7 +87,7 @@ class UI:
         await message.answer(
             "💀 <b>Йоу! Я Дедлайныч 😎</b>\n\n"
             "Пока ты отдыхаешь, я слежу за дедлайнами!\n\n"
-            "📚 Соберу домашку из подключённых чатов.\n📅 Учту расписание.\n"
+            "📚 Соберу домашку из подключённых чатов.\n📅 Подберу ДЗ к парам.\n"
             "⏰ Напомню о сдаче.\n\n🎓 АмГУ · 6104-ОБ\n\nВыбери подгруппу:",
             reply_markup=keyboard([[("1️⃣ Первая", "on_sub:1"), ("2️⃣ Вторая", "on_sub:2")]]),
         )
@@ -97,7 +98,7 @@ class UI:
         return (
             "💀 <b>ДЕДЛАЙНЫЧ</b>\n\nЙоу, студент! 😎\n"
             "Пока ты отдыхаешь,\nя слежу за дедлайнами!\n\n" + LINE + "\n"
-            "📚 Соберу всю домашку.\n🧠 Разберусь в сообщениях.\n📅 Проверю расписание.\n"
+            "📚 Соберу всю домашку.\n🧠 Разберусь в сообщениях.\n📅 Подберу ДЗ к парам.\n"
             "⏰ Напомню о заданиях.\n🔥 Спасу от неожиданной сдачи.\n"
             + LINE
             + f"\n🎓 Группа: {escape(user.group_code)}\n👥 Подгруппа: №{prefs.subgroup}\n\n👇 Что будем делать?"
@@ -422,6 +423,8 @@ class UI:
             "<code>/admin chat_add -1001234567890</code> — подключить чат\n"
             "<code>/admin chat_del -1001234567890</code> — отключить\n"
             "<code>/admin chats</code> — список\n"
+            "<code>/admin week 1 2026-10-12</code> — неделя и её понедельник (6104-ОБ)\n"
+            "<code>/admin week_off</code> — отключить повторение недель\n"
             "<code>/admin subjects</code> — предметы\n"
             "<code>/admin subject_add Математика|матеша|математика</code> — предмет и псевдонимы\n"
             "<code>/admin subject_rename 1 Новое название</code> — переименовать предмет\n"
@@ -440,7 +443,20 @@ class UI:
                 user = await session.get(User, message.from_user.id)
                 group = user.group_code
                 action = parts[1] if len(parts) > 1 else ""
-                if action in {"chat_add", "chat_del"}:
+                if action == "week":
+                    await configure_week(session, group, int(parts[2]), date.fromisoformat(parts[3]))
+                    await message.answer(
+                        "✅ Предметы и чередование недель сохранены. ДЗ на завтра учитывает подгруппу. "
+                        "Шаблон повторяется до отключения /admin week_off; каникулы и переносы не определяются автоматически."
+                    )
+                elif action == "week_off":
+                    from dedlainych.db.models import WeeklyPlan
+
+                    plan = await session.get(WeeklyPlan, group)
+                    if plan:
+                        await session.delete(plan)
+                    await message.answer("✅ Повторение недель отключено. Задания сохранены.")
+                elif action in {"chat_add", "chat_del"}:
                     cid = int(parts[2])
                     if cid >= 0:
                         raise ValueError("Нужен ID группы, начинающийся с -")
@@ -497,7 +513,10 @@ class UI:
                         used += await session.scalar(
                             select(func.count()).select_from(Lesson).where(Lesson.subject_id == subject.id)
                         )
-                        if used:
+                        from dedlainych.db.models import WeeklyPlan
+
+                        plan = await session.get(WeeklyPlan, group)
+                        if used or (plan and any(r["subject_id"] == subject.id for r in plan.lessons)):
                             raise ValueError("Предмет используется: переименуй его вместо удаления")
                         await session.delete(subject)
                     await message.answer("📚 Справочник обновлён.")

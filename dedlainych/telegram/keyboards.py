@@ -12,7 +12,7 @@ def keyboard(rows: list[list[tuple[str, str]]]) -> InlineKeyboardMarkup:
 def menu(admin=False):
     rows = [
         [("📚 Домашка на завтра", "tomorrow"), ("⚡ Узнать сейчас", "now")],
-        [("📅 Расписание", "schedule"), ("📂 Все задания", "archive:0")],
+        [("📂 Все задания", "archive:0")],
         [("✅ Мои задания", "progress"), ("🔔 Уведомления", "notifications")],
         [("⚙️ Настройки", "settings"), ("❓ Помощь", "help")],
     ]
