@@ -77,7 +77,10 @@ def build_app(config, sessions, bot, dispatcher, *, manage_lifecycle=True) -> we
                 or parsed.path
             ):
                 raise ValueError("WEBHOOK_BASE_URL должен быть HTTPS-адресом сервиса без пути")
+            from dedlainych.db.repositories import purge_context
+
             async with sessions() as session:
+                await purge_context(session)
                 existing = set((await session.scalars(select(Admin.user_id))).all())
                 for uid in config.admin_ids:
                     if uid not in existing:

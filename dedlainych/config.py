@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     database_url: SecretStr = SecretStr("postgresql+asyncpg://dedlainych:CHANGE_ME@db/dedlainych")
     admin_ids: list[int] = Field(default_factory=list)
     ai_provider: str = "rules"
+    ai_external_enabled: bool = False
+    ai_groq_model: str = "openai/gpt-oss-20b"
+    ai_daily_request_limit: int = Field(default=100, ge=0, le=1000)
+    ai_max_output_tokens: int = Field(default=1536, ge=256, le=4096)
+    ai_timeout_seconds: int = Field(default=20, ge=1, le=60)
+    context_ttl_minutes: int = Field(default=120, ge=5, le=1440)
+    context_message_limit: int = Field(default=12, ge=1, le=30)
     ai_api_key: SecretStr = SecretStr("")
     ai_base_url: str = "http://localhost:11434"
     ai_model: str = "qwen2.5:7b"
@@ -48,8 +55,8 @@ class Settings(BaseSettings):
     @field_validator("ai_provider")
     @classmethod
     def provider_valid(cls, value: str) -> str:
-        if value not in {"rules", "ollama"}:
-            raise ValueError("Доступны rules и ollama; платные API не включены")
+        if value not in {"rules", "ollama", "groq"}:
+            raise ValueError("Доступны rules, ollama и groq; внешние вызовы требуют AI_EXTERNAL_ENABLED")
         return value
 
 

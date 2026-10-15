@@ -10,6 +10,7 @@ from sqlalchemy import select, text
 from dedlainych.config import settings
 from dedlainych.db.models import Admin
 from dedlainych.db.session import make_database
+from dedlainych.db.repositories import purge_context
 from dedlainych.services.notifications import Notifier, scheduler_lock
 from dedlainych.telegram.dispatcher import build_dispatcher
 
@@ -53,6 +54,7 @@ async def main():
     watcher = None
     try:
         async with sessions() as session:
+            await purge_context(session)
             existing = set((await session.scalars(select(Admin.user_id))).all())
             for uid in config.admin_ids:
                 if uid not in existing:

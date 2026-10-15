@@ -92,3 +92,97 @@ async def test_admin_callback_rejects_normal_user(database):
     async with database() as s:
         with pytest.raises(PermissionError):
             await ui.admin_callback(s, None, 101, "approve:1", "6104-ОБ")
+
+
+async def test_prompt_and_urgent_callbacks_respect_access(database):
+    import pytest
+    from unittest.mock import patch
+    from dedlainych.db.repositories import ingest, preferences
+    from dedlainych.services.ai import Analyzer
+
+    ui = UI(database, Settings(_env_file=None))
+    async with database() as session:
+        h = (
+            await ingest(
+                session,
+                Analyzer(ui.config),
+                -100123,
+                71,
+                "По матеше решить №5 до завтра",
+                [],
+                datetime.now(timezone.utc).date(),
+            )
+        )[0]
+        prefs = await preferences(session, 101, registered=True)
+        with patch("dedlainych.telegram.handlers.edit", new=AsyncMock()) as output:
+            await ui.section(session, None, 101, f"prompt:{h.id}", prefs)
+            assert "№5" in output.call_args.args[1]
+            assert "CHATGPT" in output.call_args.args[1]
+            for row in output.call_args.args[2].inline_keyboard:
+                for button in row:
+                    if button.copy_text:
+                        assert 1 <= len(button.copy_text.text) <= 256
+            await ui.section(session, None, 101, "urgent", prefs)
+            assert "№5" in output.call_args.args[1]
+        foreign = await session.get(UserSettings, 103)
+        with pytest.raises(PermissionError):
+            await ui.section(session, None, 103, f"prompt:{h.id}", foreign)
+
+
+async def test_group_failure_remains_in_durable_queue(database):
+    from unittest.mock import patch
+    from aiogram import Bot
+    from aiogram.types import Update
+    from dedlainych.services.inbox import enqueue, drain
+    from dedlainych.telegram.dispatcher import build_dispatcher
+
+    event = Update(
+        update_id=9701,
+        message=Message(
+            message_id=33,
+            date=datetime.now(timezone.utc),
+            chat=Chat(id=-100123, type="supergroup"),
+            text="Синтетическое сообщение",
+            from_user=User(id=101, first_name="Student", is_bot=False),
+        ),
+    )
+    bot = Bot("123456789:TEST_NOT_A_REAL_TOKEN")
+    try:
+        assert await enqueue(database, event)
+        with patch(
+            "dedlainych.telegram.handlers.ingest",
+            new=AsyncMock(side_effect=RuntimeError("database temporarily unavailable")),
+        ):
+            await drain(database, bot, build_dispatcher(database, Settings(_env_file=None)))
+        from dedlainych.db.models import TelegramInbox
+
+        async with database() as session:
+            row = await session.get(TelegramInbox, 9701)
+            assert row.status == "pending" and row.attempts == 1
+    finally:
+        await bot.session.close()
+
+
+async def test_full_prompt_document_keeps_entire_task(database):
+    from types import SimpleNamespace
+    from dedlainych.db.repositories import ingest
+    from dedlainych.services.ai import Analyzer
+
+    ui = UI(database, Settings(_env_file=None))
+    async with database() as session:
+        task = (
+            await ingest(
+                session,
+                Analyzer(ui.config),
+                -100123,
+                72,
+                "По матеше решить №5",
+                [],
+                datetime.now(timezone.utc).date(),
+            )
+        )[0]
+        task.description = "Условие " * 200 + "ОБЯЗАТЕЛЬНОЕ ПОСЛЕДНЕЕ УСЛОВИЕ"
+        cb = SimpleNamespace(message=SimpleNamespace(answer_document=AsyncMock()))
+        await ui.section(session, cb, 101, f"promptfile:{task.id}", await session.get(UserSettings, 101))
+        document = cb.message.answer_document.call_args.args[0]
+        assert document.data.decode().endswith("ОБЯЗАТЕЛЬНОЕ ПОСЛЕДНЕЕ УСЛОВИЕ")

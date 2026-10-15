@@ -73,7 +73,7 @@ async def test_llm_structured_and_no_invented_subject():
         {
             "raise_for_status": lambda self: None,
             "json": lambda self: {
-                "response": '{"tasks":[{"subject":"Вымысел","description":"Решить №5","due":"2026-10-17","confidence":0.99}]}'
+                "response": '{"tasks":[{"subject":"Вымысел","description":"Решить №5","due":"2026-10-17","confidence":0.99,"evidence":"Решить №5"}]}'
             },
         },
     )()
@@ -122,6 +122,11 @@ async def test_ingestion_duplicates_edits_and_completion(database):
         rows = await add_tasks(s, "По матеше решить №99", message_id=1)
         assert len(rows) == 1
         old = await s.get(Homework, first_id)
+        assert old.status == "approved"  # edits cannot hide an approved assignment
+        assert rows[0].status == "pending" and rows[0].target_id == first_id
+        from dedlainych.services.revisions import approve
+
+        await approve(s, rows[0].id, "6104-ОБ")
         assert old.status == "superseded"
         await s.commit()
 

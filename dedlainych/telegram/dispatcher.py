@@ -16,6 +16,11 @@ def build_dispatcher(sessions, config) -> Dispatcher:
     async def errors(event: ErrorEvent):
         # No message bodies, tokens or remote URL paths in logs.
         log.error("Ошибка обработки Telegram: %s", type(event.exception).__name__)
+        message = event.update.message or event.update.edited_message
+        if message and message.chat.type in {"group", "supergroup"}:
+            # Let the durable inbox retry. Do not let aiogram turn a failed DB
+            # transaction into a successfully acknowledged group update.
+            raise RuntimeError("Групповое сообщение не обработано") from None
         if event.update.callback_query:
             try:
                 await event.update.callback_query.answer(

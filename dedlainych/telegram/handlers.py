@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, CopyTextButton, InlineKeyboardButton, BufferedInputFile
 from sqlalchemy import func, select
 
 from dedlainych.config import Settings
@@ -36,6 +36,7 @@ from dedlainych.db.repositories import (
     set_completion,
     visible_homework,
 )
+from dedlainych.services.revisions import approve, bind_target
 from dedlainych.services.admin import is_admin
 from dedlainych.services.ai import Analyzer
 from dedlainych.services.attachments import ALLOWED, extract
@@ -66,6 +67,7 @@ class UI:
         self.analyzer = Analyzer(config)
         self.rate: dict[int, float] = {}
         self.chat_locks = defaultdict(asyncio.Lock)
+        self.analysis_slots = asyncio.Semaphore(2)
         self.router = Router()
         self.router.message.register(self.start, CommandStart(), F.chat.type == "private")
         self.router.message.register(self.admin_command, Command("admin"), F.chat.type == "private")
@@ -264,6 +266,59 @@ class UI:
             await toggle_completion(session, uid, hid)
             await session.flush()
             await self.task(session, cb, uid, hid)
+        elif data == "urgent":
+            done = await completed_ids(session, uid)
+            rows = [
+                h
+                for h in await visible_homework(session, uid)
+                if h.due and h.due <= today + timedelta(days=1) and h.id not in done
+            ]
+            text = "🚨 <b>СРОЧНЫЕ И ПРОСРОЧЕННЫЕ</b>\n" + LINE + "\n"
+            text += (
+                "\n\n".join(f"📚 #{h.id} · {h.due:%d.%m}\n{escape(h.description[:200])}" for h in rows[:8])
+                or "😎 Срочных заданий пока не найдено."
+            )
+            if len(rows) > 8:
+                text += f"\n\nЕщё срочных: {len(rows) - 8}. Все задания доступны в архиве."
+            await edit(
+                cb,
+                text,
+                back([[(f"📚 #{h.id}", f"task:{h.id}")] for h in rows[:8]] + [[("📂 Архив", "archive:0")]]),
+            )
+        elif data.startswith(("prompt:", "promptfile:")):
+            hid = int(data.split(":")[1])
+            h = await accessible(session, uid, hid)
+            if not h:
+                raise PermissionError("Задание недоступно")
+            subject = await session.get(Subject, h.subject_id)
+            prompt = (
+                f"Помоги разобраться с заданием по предмету «{subject.name}». "
+                "Объясни решение пошагово, уточни недостающие данные и не придумывай условие.\n\n"
+                + h.description
+            )
+            if data.startswith("promptfile:"):
+                await cb.message.answer_document(
+                    BufferedInputFile(prompt.encode("utf-8"), filename=f"chatgpt-homework-{hid}.txt")
+                )
+                return
+            markup = back(
+                [[("📚 К заданию", f"task:{hid}")], [("📄 Полный запрос (.txt)", f"promptfile:{hid}")]]
+            )
+            if len(prompt) <= 256:
+                markup.inline_keyboard.insert(
+                    0,
+                    [
+                        InlineKeyboardButton(
+                            text="📋 Скопировать запрос", copy_text=CopyTextButton(text=prompt)
+                        )
+                    ],
+                )
+            await edit(
+                cb,
+                "🧠 <b>ЗАПРОС ДЛЯ CHATGPT</b>\n\n<pre>" + escape(prompt) + "</pre>\n\n"
+                "Нажми на блок текста, чтобы скопировать запрос в ChatGPT. При необходимости добавь полное условие и материалы.",
+                markup,
+            )
         elif data.startswith("task:"):
             await self.task(session, cb, uid, int(data.split(":")[1]))
         elif data.startswith("files:"):
@@ -297,9 +352,11 @@ class UI:
                 "Я вижу только новые сообщения подключённых чатов, историю Telegram не читаю.\n"
                 "Режим анализа: "
                 + (
-                    "локальная LLM Ollama с резервом"
+                    "Ollama с резервом правил"
                     if self.config.ai_provider == "ollama"
-                    else "правила, без ИИ"
+                    else "Groq (при включении и доступном лимите), иначе правила"
+                    if self.config.ai_provider == "groq"
+                    else "правила, без нейросети"
                 ),
                 back(),
             )
@@ -329,6 +386,7 @@ class UI:
                 [
                     [(("↩️ Вернуть" if done else "✅ Выполнено"), f"complete:{hid}:{0 if done else 1}")],
                     [("📎 Материалы", f"files:{hid}"), ("📂 Архив", "archive:0")],
+                    [("🧠 Запрос для ChatGPT", f"prompt:{hid}")],
                 ]
             ),
         )
@@ -393,9 +451,24 @@ class UI:
                     .limit(6)
                 )
             ).all()
-            text = "🧐 <b>НА ПРОВЕРКЕ</b>\n" + "\n\n".join(
-                f"#{h.id} {escape(h.description[:250])}" for h in rows[:5]
-            )
+            snippets = []
+            for h in rows[:5]:
+                original = await session.get(Homework, h.target_id) if h.target_id else None
+                before = (
+                    (
+                        f"Было: {escape(original.description[:140])} · {original.due or 'без срока'} · "
+                        f"👥 {original.subgroup or 'все'}\n"
+                    )
+                    if original
+                    else ""
+                )
+                snippets.append(
+                    f"#{h.id} · {escape(h.operation)} · исходное #{h.target_id or '—'}\n"
+                    + before
+                    + f"Предложение: {escape(h.description[:180])}\n"
+                    f"📅 {h.due or 'не указан'} · 👥 {h.subgroup or 'все'}\n⚠️ {escape(h.review_reason)}"
+                )
+            text = "🧐 <b>НА ПРОВЕРКЕ</b>\n" + ("\n\n".join(snippets) or "Проверять нечего")
             buttons = [
                 [(f"✅ #{h.id}", f"approve:{h.id}"), (f"🗑 #{h.id}", f"reject:{h.id}")] for h in rows[:5]
             ]
@@ -407,9 +480,10 @@ class UI:
         h = await session.get(Homework, int(hid))
         if not h or h.group_code != group:
             raise PermissionError("Задание другой группы или удалено")
-        if action == "approve" and not h.subject_id:
-            raise ValueError(f"Сначала назначь предмет: /admin subject {h.id} Название")
-        h.status = "approved" if action == "approve" else "rejected"
+        if action == "approve":
+            await approve(session, h.id, group)
+        elif h.status == "pending":
+            h.status = "rejected"
         await session.flush()
         await self.admin_callback(session, cb, uid, "review:0", group)
 
@@ -434,6 +508,8 @@ class UI:
             "<code>/admin text 12 Новое описание</code> — исправить текст\n"
             "<code>/admin delete 12</code> — убрать ошибочное задание\n"
             "<code>/admin inspect 12</code> — исходный текст и статус\n"
+            "<code>/admin target 12 5</code> — связать исправление #12 с заданием #5\n"
+            "<code>/admin as_new 12</code> — считать отдельным новым заданием\n"
             "📅 Импорт: отправь JSON-документ, структура — в README.\n"
             "Перенос: измени дату в импорте и включи прежнюю пару с cancelled=true."
         )
@@ -533,6 +609,21 @@ class UI:
                         session.add(row)
                     row.aliases = [v.strip() for v in values[1:] if v.strip()][:30]
                     await message.answer("📚 Предмет и псевдонимы сохранены.")
+                elif action in {"target", "as_new"}:
+                    proposal = await session.get(Homework, int(parts[2]))
+                    if not proposal or proposal.group_code != group or proposal.status != "pending":
+                        raise PermissionError("Нужно ожидающее проверки задание своей группы")
+                    if action == "as_new":
+                        proposal.operation = "create"
+                        proposal.target_id = proposal.target_fingerprint = None
+                    else:
+                        target = await session.get(Homework, int(parts[3]))
+                        if not target or proposal.operation == "create":
+                            raise ValueError("Выбери предложение исправления и действующее исходное задание")
+                        await bind_target(session, proposal, target)
+                    await message.answer(
+                        "✅ Связь сохранена. Проверь содержание и подтверди в админском меню."
+                    )
                 elif action in {"subject", "due", "text", "delete", "inspect"}:
                     h = await session.get(Homework, int(parts[2]))
                     if not h or h.group_code != group:
@@ -554,7 +645,13 @@ class UI:
                     else:
                         source = await session.get(Source, h.source_id)
                         await message.answer(
-                            limit_html(f"🧐 #{h.id} · {escape(h.status)}\n{escape(source.text[:3000])}")
+                            limit_html(
+                                f"🧐 #{h.id} · {escape(h.status)} · {escape(h.operation)}\n"
+                                f"Предложение: {escape(h.description[:1200])}\n"
+                                f"📅 {h.due or 'не указан'} · 👥 {h.subgroup or 'все'}\n"
+                                f"Исходное задание: #{h.target_id or 'не определено'}\n"
+                                f"{escape(h.review_reason)}\n\nСообщение: {escape(source.text[:1500])}"
+                            )
                         )
                         materials = (
                             await session.scalars(select(Attachment).where(Attachment.source_id == source.id))
@@ -656,7 +753,7 @@ class UI:
 
     async def group_message(self, message: Message):
         # Chat-level serialization protects duplicates and edits within the single polling process.
-        async with self.chat_locks[message.chat.id]:
+        async with self.chat_locks[message.chat.id], self.analysis_slots:
             async with self.sessions() as session:
                 if not await session.get(ConnectedChat, message.chat.id):
                     return
@@ -687,7 +784,7 @@ class UI:
             async with self.sessions() as session:
                 rows = await ingest(
                     session,
-                    self.analyzer,
+                    Analyzer(self.config),
                     message.chat.id,
                     message.message_id,
                     content,
@@ -695,6 +792,16 @@ class UI:
                     (message.edit_date or message.date).astimezone(ZoneInfo(self.config.tz)).date(),
                     link,
                     received_at=message.date,
+                    version_at=message.edit_date or message.date,
+                    reply_to_message_id=message.reply_to_message.message_id
+                    if message.reply_to_message
+                    else None,
+                    reply_text=(message.reply_to_message.text or message.reply_to_message.caption or "")
+                    if message.reply_to_message
+                    and message.date - message.reply_to_message.date
+                    <= timedelta(minutes=self.config.context_ttl_minutes)
+                    else "",
+                    forwarded=message.forward_origin is not None,
                 )
                 await session.commit()
             if any(h.status == "pending" for h in rows):
